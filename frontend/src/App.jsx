@@ -11,8 +11,9 @@ function App() {
   const [wsStatus, setWsStatus] = useState('Connecting...');
 
   useEffect(() => {
-    // Connect to FastAPI WebSocket
-    const ws = new WebSocket('ws://localhost:8000/ws/dashboard');
+    // Connect to FastAPI WebSocket (use env var for cloud deployment, fallback to localhost)
+    const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:8000/ws/dashboard';
+    const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
       setWsStatus('Connected');

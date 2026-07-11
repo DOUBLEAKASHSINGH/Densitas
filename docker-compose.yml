@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+    # Add timescaledb here if you want to run the database locally in the future
+    
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    environment:
+      # Map the Vite environment variable to point to our docker backend container internally
+      - VITE_WS_URL=ws://backend:8000/ws/dashboard
+    depends_on:
+      - backend
