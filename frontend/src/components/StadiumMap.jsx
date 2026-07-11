@@ -2,11 +2,16 @@ import React from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// Approximate coordinates for our zones based on the schema seed
+// Approximate coordinates for our zones (4 zones for mock data)
 const ZONE_COORDS = {
-  1: [40.7128, -74.0060], // North Entrance
-  2: [40.7129, -74.0061], // Main Hall
-  3: [40.7130, -74.0062], // VIP Lounge
+  'A': [40.7128, -74.0060], // North Entrance
+  'B': [40.7129, -74.0061], // Main Hall
+  'C': [40.7130, -74.0062], // VIP Lounge
+  'D': [40.7127, -74.0059], // South Exit
+  // Fallbacks for original numeric IDs if using real WS
+  '1': [40.7128, -74.0060], 
+  '2': [40.7129, -74.0061],
+  '3': [40.7130, -74.0062],
 };
 
 export default function StadiumMap({ zoneStates }) {
@@ -28,8 +33,9 @@ export default function StadiumMap({ zoneStates }) {
       <div className="absolute inset-0 border-2 border-neon-cyan/20 rounded-xl pointer-events-none z-[1000]"></div>
       
       <MapContainer center={center} zoom={18} className="h-full w-full bg-gray-900" zoomControl={false}>
+        {/* High Contrast Voyager Map */}
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://carto.com/">CARTO</a>'
         />
         
@@ -48,8 +54,8 @@ export default function StadiumMap({ zoneStates }) {
             <Popup>
               <div className="text-xs font-mono text-gray-900">
                 <strong>Zone {zoneId}</strong><br/>
-                Capacity: {data.current_capacity_pct}%<br/>
-                Predicted (5m): {data.predicted_capacity_pct_5m}%
+                Capacity: {Math.round(data.current_capacity_pct)}%<br/>
+                Predicted (5m): {Math.round(data.predicted_capacity_pct_5m)}%
               </div>
             </Popup>
           </CircleMarker>
