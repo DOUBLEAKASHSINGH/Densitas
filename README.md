@@ -1,8 +1,8 @@
-# OptiFlow 🏟️
+# OptiFlow
 
-OptiFlow is a deterministic, AI-driven live event crowd control system built to predict, manage, and mitigate massive crowd surges in real-time. 
+OptiFlow is a deterministic, AI-driven live event crowd control system built to predict, manage, and mitigate massive crowd surges in real-time.
 
-## 🚀 Features
+## Features
 
 - **Live Telemetry Ingestion**: Sub-second data streaming through a lightning-fast FastAPI backend.
 - **Deterministic Multi-Agent System**:
@@ -14,14 +14,14 @@ OptiFlow is a deterministic, AI-driven live event crowd control system built to 
 - **Cyberpunk Command Center**: A sleek React (Vite) + Tailwind CSS dashboard visualizing live heatmaps (Leaflet) and predictive charts (Recharts).
 - **Edge Deployment Ready**: Fully compliant with strict C++ edge proxy constraints for high-frequency hardware preprocessing.
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Backend**: Python, FastAPI, Uvicorn, Pandas, WebSockets
 - **Frontend**: React (Vite), Tailwind CSS v3, Recharts, React-Leaflet
 - **Database**: Supabase (PostgreSQL + TimescaleDB for hyper-table time-series optimization)
 - **Deployment**: Vercel (Frontend), Render (Backend), Docker Compose
 
-## 🏃‍♂️ Running Locally
+## Running Locally
 
 Start the entire stack instantly using Docker:
 
@@ -51,7 +51,7 @@ docker-compose up --build
 
 Navigate to `http://localhost:5173` to view the live OptiFlow dashboard.
 
-## ☁️ Cloud Deployment
+## Cloud Deployment
 
 - **Render**: The `render.yaml` blueprint automates the backend infrastructure. Ensure you map a PostgreSQL database for full TimescaleDB data persistence.
 - **Vercel**: The `frontend/vercel.json` ensures smooth SPA routing. Set `VITE_WS_URL` to your Render backend WebSocket URL in your Vercel project settings (e.g., `wss://optiflow-backend.onrender.com/ws/dashboard`).
