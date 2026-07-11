@@ -133,7 +133,7 @@ export default function AttendeeDashboard() {
                    </div>
                  </div>
                  <div className="w-full bg-gray-900 rounded-full h-2">
-                   <div className={`h-2 rounded-full transition-all duration-1000 ${facilities.food > 15 ? 'bg-red-500' : 'bg-green-500'}`} style={{ width: \`\${Math.min(100, (facilities.food / 30) * 100)}%\` }}></div>
+                   <div className={`h-2 rounded-full transition-all duration-1000 ${facilities.food > 15 ? 'bg-red-500' : 'bg-green-500'}`} style={{ width: `${Math.min(100, (facilities.food / 30) * 100)}%` }}></div>
                  </div>
                </div>
 
@@ -149,7 +149,7 @@ export default function AttendeeDashboard() {
                    </div>
                  </div>
                  <div className="w-full bg-gray-900 rounded-full h-2">
-                   <div className={`h-2 rounded-full transition-all duration-1000 ${facilities.restroom > 10 ? 'bg-red-500' : 'bg-green-500'}`} style={{ width: \`\${Math.min(100, (facilities.restroom / 15) * 100)}%\` }}></div>
+                   <div className={`h-2 rounded-full transition-all duration-1000 ${facilities.restroom > 10 ? 'bg-red-500' : 'bg-green-500'}`} style={{ width: `${Math.min(100, (facilities.restroom / 15) * 100)}%` }}></div>
                  </div>
                </div>
 
@@ -165,7 +165,7 @@ export default function AttendeeDashboard() {
                    </div>
                  </div>
                  <div className="w-full bg-gray-900 rounded-full h-2">
-                   <div className={`h-2 rounded-full transition-all duration-1000 ${facilities.merch > 20 ? 'bg-red-500' : 'bg-yellow-500'}`} style={{ width: \`\${Math.min(100, (facilities.merch / 40) * 100)}%\` }}></div>
+                   <div className={`h-2 rounded-full transition-all duration-1000 ${facilities.merch > 20 ? 'bg-red-500' : 'bg-yellow-500'}`} style={{ width: `${Math.min(100, (facilities.merch / 40) * 100)}%` }}></div>
                  </div>
                </div>
              </div>
