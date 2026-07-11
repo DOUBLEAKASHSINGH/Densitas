@@ -85,6 +85,12 @@ export default function AttendeeDashboard() {
           </h1>
         </div>
 
+        <div className="flex-1 flex justify-center space-x-8">
+           <button className="text-sm font-medium text-blue-500 transition-colors">Live Map</button>
+           <button onClick={() => navigate('/about')} className="text-sm font-medium text-gray-400 transition-colors hover:text-white">Event Info</button>
+           <button onClick={() => navigate('/docs')} className="text-sm font-medium text-gray-400 transition-colors hover:text-white">Help</button>
+        </div>
+
         <div className="flex items-center justify-end space-x-4 w-1/3">
           <button 
             onClick={() => navigate('/select')}

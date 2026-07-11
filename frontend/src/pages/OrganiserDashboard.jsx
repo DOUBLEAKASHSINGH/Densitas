@@ -141,6 +141,8 @@ export default function OrganiserDashboard() {
         </div>
         <div className="flex-1 flex justify-center space-x-8">
            <button className="text-sm font-medium text-neon-cyan transition-colors">Tactical Command Center</button>
+           <button onClick={() => navigate('/docs')} className="text-sm font-medium text-gray-400 transition-colors hover:text-white">Documentation</button>
+           <button onClick={() => navigate('/about')} className="text-sm font-medium text-gray-400 transition-colors hover:text-white">About Us</button>
         </div>
         <div className="flex items-center justify-end space-x-4 w-1/4">
           <button onClick={() => navigate('/select')} className="flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2 rounded-md text-sm transition-all"><LogOut size={16} /><span>Exit Context</span></button>
