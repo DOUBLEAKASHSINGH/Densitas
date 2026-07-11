@@ -2,7 +2,7 @@ import React from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup, Polyline, Tooltip } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 
-const CENTER = [17.4065, 78.5538];
+const DEFAULT_CENTER = [17.4065, 78.5538];
 
 const ZONE_COORDS = {
   'A': [17.4070, 78.5538], // North
@@ -18,7 +18,9 @@ const EXIT_COORDS = {
   'D': [17.4065, 78.5515],
 };
 
-export default function StadiumMap({ zoneStates }) {
+export default function StadiumMap({ zoneStates, userLocation = null, customZoom = 16 }) {
+  const mapCenter = userLocation || DEFAULT_CENTER;
+
   const getColor = (capacityPct) => {
     if (capacityPct > 85) return '#ef4444'; 
     if (capacityPct >= 70) return '#eab308'; 
@@ -33,14 +35,16 @@ export default function StadiumMap({ zoneStates }) {
     <div className="h-full w-full rounded-xl overflow-hidden border border-gray-800 shadow-[0_0_15px_rgba(0,243,255,0.15)] relative z-0">
       <div className="absolute inset-0 border-2 border-neon-cyan/20 rounded-xl pointer-events-none z-[1000]"></div>
       
-      <MapContainer center={CENTER} zoom={16} className="h-full w-full bg-gray-900" zoomControl={false}>
+      {/* key forces map re-render if center changes dramatically */}
+      <MapContainer key={mapCenter.join(',')} center={mapCenter} zoom={customZoom} className="h-full w-full bg-gray-900" zoomControl={false}>
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://carto.com/">CARTO</a>'
         />
 
+        {/* Center Stage Marker */}
         <CircleMarker
-          center={CENTER}
+          center={DEFAULT_CENTER}
           radius={8}
           pathOptions={{ color: '#8b5cf6', fillColor: '#8b5cf6', fillOpacity: 0.8, weight: 3 }}
         >
@@ -48,6 +52,18 @@ export default function StadiumMap({ zoneStates }) {
             <div className="text-xs font-mono font-bold text-gray-900">Main Stage</div>
           </Popup>
         </CircleMarker>
+
+        {userLocation && (
+          <CircleMarker
+            center={userLocation}
+            radius={6}
+            pathOptions={{ color: '#3b82f6', fillColor: '#3b82f6', fillOpacity: 1, weight: 2 }}
+          >
+            <Tooltip permanent direction="top" className="bg-blue-600 text-white border-0 font-bold text-[10px]">
+              YOU ARE HERE
+            </Tooltip>
+          </CircleMarker>
+        )}
 
         {Object.entries(EXIT_COORDS).map(([exitId, coords]) => (
           <CircleMarker
@@ -65,7 +81,7 @@ export default function StadiumMap({ zoneStates }) {
         {Object.entries(zoneStates).map(([zoneId, data]) => {
           const cap = data.current_capacity_pct;
           const isCongested = cap > 85;
-          const zoneCoord = ZONE_COORDS[zoneId] || CENTER;
+          const zoneCoord = ZONE_COORDS[zoneId] || DEFAULT_CENTER;
           const exitCoord = EXIT_COORDS[zoneId]; 
           const areaName = data.meta_area || `Zone ${zoneId}`;
 
@@ -80,6 +96,18 @@ export default function StadiumMap({ zoneStates }) {
                     Rerouting to Exit {zoneId}
                   </Tooltip>
                 </Polyline>
+              )}
+
+              {/* If user is here, draw path from user to exit when congested */}
+              {isCongested && userLocation && Math.abs(zoneCoord[0] - userLocation[0]) < 0.001 && (
+                 <Polyline 
+                 positions={[userLocation, exitCoord]} 
+                 pathOptions={{ color: '#3b82f6', weight: 3, dashArray: "5 5", className: 'animate-pulse' }}
+               >
+                 <Tooltip permanent direction="bottom" className="bg-blue-600 text-white border-0 font-mono text-[10px]">
+                   YOUR ESCAPE ROUTE
+                 </Tooltip>
+               </Polyline>
               )}
 
               <CircleMarker
