@@ -81,8 +81,9 @@ export default function AttendeeDashboard() {
         <div className="flex items-center space-x-3 w-1/3">
           <Activity className="text-blue-500 animate-pulse" size={26} />
           <h1 className="text-2xl font-bold tracking-widest text-white uppercase">
-            OptiFlow <span className="text-gray-500 font-light text-lg">Public</span>
+            OptiFlow
           </h1>
+          <span className="bg-blue-500/10 text-blue-500 border border-blue-500 px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-widest ml-2">ATTENDEE</span>
         </div>
 
         <div className="flex-1 flex justify-center space-x-8">
@@ -112,7 +113,7 @@ export default function AttendeeDashboard() {
              </div>
              <div>
                <p className="text-xs text-gray-500 font-bold tracking-wider">YOUR LOCATION</p>
-               <p className="text-white font-bold text-lg">North Entrance</p>
+               <p className="text-white font-bold text-lg">North Pavilion</p>
              </div>
           </div>
 
@@ -121,35 +122,50 @@ export default function AttendeeDashboard() {
              
              <div className="flex-1 flex flex-col justify-around">
                {/* Food */}
-               <div className="flex items-center justify-between">
-                 <div className="flex items-center space-x-3">
-                   <Coffee className="text-gray-400" size={20} />
-                   <span className="text-gray-300">Food Court A</span>
+               <div className="flex flex-col mb-4">
+                 <div className="flex items-center justify-between mb-2">
+                   <div className="flex items-center space-x-3">
+                     <Coffee className="text-gray-400" size={20} />
+                     <span className="text-gray-300">Food Court A</span>
+                   </div>
+                   <div className={`font-bold font-mono text-sm ${facilities.food > 15 ? 'text-red-500' : 'text-green-500'}`}>
+                     {facilities.food}m wait
+                   </div>
                  </div>
-                 <div className={`font-bold font-mono px-2 py-1 rounded ${facilities.food > 15 ? 'bg-red-500/20 text-red-500' : 'bg-green-500/20 text-green-500'}`}>
-                   {facilities.food}m wait
+                 <div className="w-full bg-gray-900 rounded-full h-2">
+                   <div className={`h-2 rounded-full transition-all duration-1000 ${facilities.food > 15 ? 'bg-red-500' : 'bg-green-500'}`} style={{ width: \`\${Math.min(100, (facilities.food / 30) * 100)}%\` }}></div>
                  </div>
                </div>
 
                {/* Restroom */}
-               <div className="flex items-center justify-between">
-                 <div className="flex items-center space-x-3">
-                   <Bath className="text-gray-400" size={20} />
-                   <span className="text-gray-300">Restroom (North)</span>
+               <div className="flex flex-col mb-4">
+                 <div className="flex items-center justify-between mb-2">
+                   <div className="flex items-center space-x-3">
+                     <Bath className="text-gray-400" size={20} />
+                     <span className="text-gray-300">Restroom (North)</span>
+                   </div>
+                   <div className={`font-bold font-mono text-sm ${facilities.restroom > 10 ? 'text-red-500' : 'text-green-500'}`}>
+                     {facilities.restroom}m wait
+                   </div>
                  </div>
-                 <div className={`font-bold font-mono px-2 py-1 rounded ${facilities.restroom > 10 ? 'bg-red-500/20 text-red-500' : 'bg-green-500/20 text-green-500'}`}>
-                   {facilities.restroom}m wait
+                 <div className="w-full bg-gray-900 rounded-full h-2">
+                   <div className={`h-2 rounded-full transition-all duration-1000 ${facilities.restroom > 10 ? 'bg-red-500' : 'bg-green-500'}`} style={{ width: \`\${Math.min(100, (facilities.restroom / 15) * 100)}%\` }}></div>
                  </div>
                </div>
 
                {/* Merch */}
-               <div className="flex items-center justify-between">
-                 <div className="flex items-center space-x-3">
-                   <Shirt className="text-gray-400" size={20} />
-                   <span className="text-gray-300">Official Merch</span>
+               <div className="flex flex-col">
+                 <div className="flex items-center justify-between mb-2">
+                   <div className="flex items-center space-x-3">
+                     <Shirt className="text-gray-400" size={20} />
+                     <span className="text-gray-300">Official Merch</span>
+                   </div>
+                   <div className={`font-bold font-mono text-sm ${facilities.merch > 20 ? 'text-red-500' : 'text-yellow-500'}`}>
+                     {facilities.merch}m wait
+                   </div>
                  </div>
-                 <div className={`font-bold font-mono px-2 py-1 rounded ${facilities.merch > 20 ? 'bg-red-500/20 text-red-500' : 'bg-yellow-500/20 text-yellow-500'}`}>
-                   {facilities.merch}m wait
+                 <div className="w-full bg-gray-900 rounded-full h-2">
+                   <div className={`h-2 rounded-full transition-all duration-1000 ${facilities.merch > 20 ? 'bg-red-500' : 'bg-yellow-500'}`} style={{ width: \`\${Math.min(100, (facilities.merch / 40) * 100)}%\` }}></div>
                  </div>
                </div>
              </div>

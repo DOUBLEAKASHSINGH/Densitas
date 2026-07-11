@@ -32,10 +32,10 @@ export default function OrganiserDashboard() {
   ]);
 
   const ZONE_META = {
-    'A': 'North Entrance',
-    'B': 'Main Concourse',
+    'A': 'North Pavilion',
+    'B': 'East Stand',
     'C': 'South Pavilion',
-    'D': 'VIP West Wing'
+    'D': 'West Stand'
   };
 
   useEffect(() => {
@@ -138,6 +138,7 @@ export default function OrganiserDashboard() {
         <div className="flex items-center space-x-3 w-1/4">
           <Activity className="text-neon-cyan animate-pulse" size={26} />
           <h1 className="text-2xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-neon-cyan to-blue-500 uppercase">OptiFlow</h1>
+          <span className="bg-neon-cyan/10 text-neon-cyan border border-neon-cyan px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-widest ml-2">ORGANISER</span>
         </div>
         <div className="flex-1 flex justify-center space-x-8">
            <button className="text-sm font-medium text-neon-cyan transition-colors">Tactical Command Center</button>

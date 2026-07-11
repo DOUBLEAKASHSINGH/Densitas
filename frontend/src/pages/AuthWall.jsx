@@ -5,10 +5,12 @@ import { ShieldCheck, User, LogIn, Activity } from 'lucide-react';
 export default function AuthWall() {
   const navigate = useNavigate();
   const [isSignUp, setIsSignUp] = useState(false);
+  const [role, setRole] = useState('Attendee'); // Default role
 
   const handleAuth = (e) => {
     e.preventDefault();
-    // Mock authentication success
+    // Save role to localStorage to dictate routing later
+    localStorage.setItem('optiflow_role', role);
     navigate('/select');
   };
 
@@ -61,10 +63,27 @@ export default function AuthWall() {
           </div>
 
           {isSignUp && (
-            <div>
-              <label className="block text-xs font-mono text-gray-400 mb-1">COMPANY / VENUE NAME</label>
-              <input type="text" placeholder="Rajiv Gandhi Stadium" required className="w-full bg-[#030712] border border-gray-700 rounded-md px-4 py-2 text-gray-100 focus:outline-none focus:border-neon-cyan transition-colors" />
-            </div>
+            <>
+              <div>
+                <label className="block text-xs font-mono text-gray-400 mb-1">ROLE</label>
+                <div className="flex space-x-4">
+                  <label className="flex items-center space-x-2 text-sm text-gray-300 cursor-pointer">
+                    <input type="radio" name="role" value="Attendee" checked={role === 'Attendee'} onChange={() => setRole('Attendee')} className="accent-neon-cyan" />
+                    <span>Attendee</span>
+                  </label>
+                  <label className="flex items-center space-x-2 text-sm text-gray-300 cursor-pointer">
+                    <input type="radio" name="role" value="Organiser" checked={role === 'Organiser'} onChange={() => setRole('Organiser')} className="accent-neon-cyan" />
+                    <span>Organiser</span>
+                  </label>
+                </div>
+              </div>
+              {role === 'Organiser' && (
+                <div>
+                  <label className="block text-xs font-mono text-gray-400 mb-1">COMPANY / VENUE NAME</label>
+                  <input type="text" placeholder="Rajiv Gandhi Stadium" required className="w-full bg-[#030712] border border-gray-700 rounded-md px-4 py-2 text-gray-100 focus:outline-none focus:border-neon-cyan transition-colors" />
+                </div>
+              )}
+            </>
           )}
 
           <button type="submit" className="w-full mt-6 bg-neon-cyan hover:bg-neon-cyan/80 text-[#030712] font-bold py-2.5 rounded-md flex justify-center items-center transition-colors shadow-[0_0_15px_rgba(0,243,255,0.4)]">
