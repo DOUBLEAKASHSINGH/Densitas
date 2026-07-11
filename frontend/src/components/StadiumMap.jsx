@@ -1,26 +1,29 @@
 import React from 'react';
-import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, CircleMarker, Popup, Polyline, Tooltip } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// Approximate coordinates for our zones (4 zones for mock data)
+// Coordinates around Rajiv Gandhi International Cricket Stadium
+const CENTER = [17.4065, 78.5538];
+
 const ZONE_COORDS = {
-  'A': [40.7128, -74.0060], // North Entrance
-  'B': [40.7129, -74.0061], // Main Hall
-  'C': [40.7130, -74.0062], // VIP Lounge
-  'D': [40.7127, -74.0059], // South Exit
-  // Fallbacks for original numeric IDs if using real WS
-  '1': [40.7128, -74.0060], 
-  '2': [40.7129, -74.0061],
-  '3': [40.7130, -74.0062],
+  'A': [17.4070, 78.5538], // North
+  'B': [17.4065, 78.5543], // East
+  'C': [17.4060, 78.5538], // South
+  'D': [17.4065, 78.5533], // West
+};
+
+const EXIT_COORDS = {
+  'A': [17.4085, 78.5538], // Far North
+  'B': [17.4065, 78.5560], // Far East
+  'C': [17.4045, 78.5538], // Far South
+  'D': [17.4065, 78.5515], // Far West
 };
 
 export default function StadiumMap({ zoneStates }) {
-  const center = [40.7129, -74.0061];
-
   const getColor = (capacityPct) => {
-    if (capacityPct >= 90) return '#ff003c'; // neon-red
-    if (capacityPct >= 75) return '#ffb000'; // neon-amber
-    return '#00f3ff'; // neon-cyan
+    if (capacityPct > 85) return '#ef4444'; // Red
+    if (capacityPct >= 70) return '#eab308'; // Yellow
+    return '#22c55e'; // Green
   };
 
   const getRadius = (capacityPct) => {
@@ -28,38 +31,83 @@ export default function StadiumMap({ zoneStates }) {
   };
 
   return (
-    <div className="h-full w-full rounded-xl overflow-hidden border border-gray-800 shadow-[0_0_15px_rgba(0,243,255,0.15)] relative">
-      {/* Decorative overlay border */}
+    <div className="h-full w-full rounded-xl overflow-hidden border border-gray-800 shadow-[0_0_15px_rgba(0,243,255,0.15)] relative z-0">
       <div className="absolute inset-0 border-2 border-neon-cyan/20 rounded-xl pointer-events-none z-[1000]"></div>
       
-      <MapContainer center={center} zoom={18} className="h-full w-full bg-gray-900" zoomControl={false}>
-        {/* High Contrast Voyager Map */}
+      <MapContainer center={CENTER} zoom={16} className="h-full w-full bg-gray-900" zoomControl={false}>
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://carto.com/">CARTO</a>'
         />
-        
-        {Object.entries(zoneStates).map(([zoneId, data]) => (
+
+        {/* Center Stage Marker */}
+        <CircleMarker
+          center={CENTER}
+          radius={8}
+          pathOptions={{ color: '#8b5cf6', fillColor: '#8b5cf6', fillOpacity: 0.8, weight: 3 }}
+        >
+          <Popup>
+            <div className="text-xs font-mono font-bold text-gray-900">Main Stage</div>
+          </Popup>
+        </CircleMarker>
+
+        {/* Exits */}
+        {Object.entries(EXIT_COORDS).map(([exitId, coords]) => (
           <CircleMarker
-            key={zoneId}
-            center={ZONE_COORDS[zoneId] || center}
-            radius={getRadius(data.current_capacity_pct)}
-            pathOptions={{
-              color: getColor(data.current_capacity_pct),
-              fillColor: getColor(data.current_capacity_pct),
-              fillOpacity: 0.5,
-              weight: 2,
-            }}
+            key={`exit-${exitId}`}
+            center={coords}
+            radius={10}
+            pathOptions={{ color: '#10b981', fillColor: '#10b981', fillOpacity: 0.9, weight: 2, dashArray: "4 4" }}
           >
             <Popup>
-              <div className="text-xs font-mono text-gray-900">
-                <strong>Zone {zoneId}</strong><br/>
-                Capacity: {Math.round(data.current_capacity_pct)}%<br/>
-                Predicted (5m): {Math.round(data.predicted_capacity_pct_5m)}%
-              </div>
+              <div className="text-xs font-mono font-bold text-green-700">EXIT {exitId} (SAFE)</div>
             </Popup>
           </CircleMarker>
         ))}
+        
+        {/* Zones and Dynamic Routing */}
+        {Object.entries(zoneStates).map(([zoneId, data]) => {
+          const cap = data.current_capacity_pct;
+          const isCongested = cap > 85;
+          const zoneCoord = ZONE_COORDS[zoneId] || CENTER;
+          const exitCoord = EXIT_COORDS[zoneId]; // Nearest exit maps directly to same letter
+
+          return (
+            <React.Fragment key={zoneId}>
+              {/* Dynamic Evacuation Route */}
+              {isCongested && (
+                <Polyline 
+                  positions={[zoneCoord, exitCoord]} 
+                  pathOptions={{ color: '#00f3ff', weight: 4, dashArray: "10 10", className: 'animate-pulse' }}
+                >
+                  <Tooltip permanent direction="center" className="bg-gray-900 text-neon-cyan border border-neon-cyan font-mono text-[10px]">
+                    Rerouting to Exit {zoneId}
+                  </Tooltip>
+                </Polyline>
+              )}
+
+              {/* Zone Heatmap Circle */}
+              <CircleMarker
+                center={zoneCoord}
+                radius={getRadius(cap)}
+                pathOptions={{
+                  color: getColor(cap),
+                  fillColor: getColor(cap),
+                  fillOpacity: 0.6,
+                  weight: 2,
+                }}
+              >
+                <Popup>
+                  <div className="text-xs font-mono text-gray-900">
+                    <strong>Zone {zoneId}</strong><br/>
+                    Capacity: {Math.round(cap)}%<br/>
+                    Predicted (5m): {Math.round(data.predicted_capacity_pct_5m)}%
+                  </div>
+                </Popup>
+              </CircleMarker>
+            </React.Fragment>
+          );
+        })}
       </MapContainer>
     </div>
   );
