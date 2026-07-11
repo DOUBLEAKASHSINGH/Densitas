@@ -1,97 +1,74 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, User, LogIn, Activity } from 'lucide-react';
+import { LogIn, UserPlus, Activity } from 'lucide-react';
 
 export default function AuthWall() {
   const navigate = useNavigate();
   const [isSignUp, setIsSignUp] = useState(false);
-  const [role, setRole] = useState('Attendee'); // Default role
 
   const handleAuth = (e) => {
     e.preventDefault();
-    // Save role to localStorage to dictate routing later
-    localStorage.setItem('optiflow_role', role);
-    navigate('/select');
+    // Route to location selection after successful auth
+    navigate('/select-location');
   };
 
   return (
-    <div className="h-screen bg-[#030712] text-gray-100 font-sans flex items-center justify-center relative overflow-hidden">
-      {/* Background glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-neon-cyan/10 blur-[120px] rounded-full pointer-events-none"></div>
+    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col items-center justify-center p-4">
+      
+      {/* Brand Header */}
+      <div className="flex items-center justify-center mb-8">
+        <Activity className="text-indigo-600 mr-2" size={36} />
+        <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">
+          OptiFlow
+        </h1>
+      </div>
 
-      <div className="bg-[#111827] border border-gray-800 rounded-xl shadow-2xl p-8 w-full max-w-md relative z-10">
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-neon-cyan to-blue-500"></div>
-
-        <div className="flex items-center justify-center mb-8 mt-2">
-          <Activity className="text-neon-cyan mr-2" size={32} />
-          <h2 className="text-2xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-neon-cyan to-blue-500 uppercase">
-            OptiFlow
-          </h2>
-        </div>
-
-        <div className="flex space-x-4 mb-6 border-b border-gray-800 pb-2">
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-8 w-full max-w-md">
+        
+        <div className="flex space-x-2 mb-8 bg-slate-100 p-1 rounded-lg">
           <button
             onClick={() => setIsSignUp(false)}
-            className={`flex-1 text-sm font-bold tracking-wider uppercase transition-colors ${!isSignUp ? 'text-neon-cyan' : 'text-gray-500 hover:text-gray-300'}`}
+            className={`flex-1 py-2 text-sm font-semibold rounded-md transition-all ${!isSignUp ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
           >
             Sign In
           </button>
           <button
             onClick={() => setIsSignUp(true)}
-            className={`flex-1 text-sm font-bold tracking-wider uppercase transition-colors ${isSignUp ? 'text-neon-cyan' : 'text-gray-500 hover:text-gray-300'}`}
+            className={`flex-1 py-2 text-sm font-semibold rounded-md transition-all ${isSignUp ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
           >
             Sign Up
           </button>
         </div>
 
-        <form onSubmit={handleAuth} className="space-y-4">
+        <form onSubmit={handleAuth} className="space-y-5">
           {isSignUp && (
             <div>
-              <label className="block text-xs font-mono text-gray-400 mb-1">FULL NAME</label>
-              <input type="text" placeholder="John Doe" required className="w-full bg-[#030712] border border-gray-700 rounded-md px-4 py-2 text-gray-100 focus:outline-none focus:border-neon-cyan transition-colors" />
+              <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
+              <input type="text" placeholder="Jane Doe" required className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" />
             </div>
           )}
           
           <div>
-            <label className="block text-xs font-mono text-gray-400 mb-1">ENTERPRISE EMAIL</label>
-            <input type="email" placeholder="admin@optiflow.io" required className="w-full bg-[#030712] border border-gray-700 rounded-md px-4 py-2 text-gray-100 focus:outline-none focus:border-neon-cyan transition-colors" />
+            <label className="block text-sm font-medium text-slate-700 mb-1">Work Email</label>
+            <input type="email" placeholder="jane@optiflow.io" required className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" />
           </div>
           
           <div>
-            <label className="block text-xs font-mono text-gray-400 mb-1">PASSWORD</label>
-            <input type="password" placeholder="••••••••" required className="w-full bg-[#030712] border border-gray-700 rounded-md px-4 py-2 text-gray-100 focus:outline-none focus:border-neon-cyan transition-colors" />
+            <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+            <input type="password" placeholder="••••••••" required className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" />
           </div>
 
-          {isSignUp && (
-            <>
-              <div>
-                <label className="block text-xs font-mono text-gray-400 mb-1">ROLE</label>
-                <div className="flex space-x-4">
-                  <label className="flex items-center space-x-2 text-sm text-gray-300 cursor-pointer">
-                    <input type="radio" name="role" value="Attendee" checked={role === 'Attendee'} onChange={() => setRole('Attendee')} className="accent-neon-cyan" />
-                    <span>Attendee</span>
-                  </label>
-                  <label className="flex items-center space-x-2 text-sm text-gray-300 cursor-pointer">
-                    <input type="radio" name="role" value="Organiser" checked={role === 'Organiser'} onChange={() => setRole('Organiser')} className="accent-neon-cyan" />
-                    <span>Organiser</span>
-                  </label>
-                </div>
-              </div>
-              {role === 'Organiser' && (
-                <div>
-                  <label className="block text-xs font-mono text-gray-400 mb-1">COMPANY / VENUE NAME</label>
-                  <input type="text" placeholder="Rajiv Gandhi Stadium" required className="w-full bg-[#030712] border border-gray-700 rounded-md px-4 py-2 text-gray-100 focus:outline-none focus:border-neon-cyan transition-colors" />
-                </div>
-              )}
-            </>
-          )}
-
-          <button type="submit" className="w-full mt-6 bg-neon-cyan hover:bg-neon-cyan/80 text-[#030712] font-bold py-2.5 rounded-md flex justify-center items-center transition-colors shadow-[0_0_15px_rgba(0,243,255,0.4)]">
-            {!isSignUp ? <LogIn size={18} className="mr-2" /> : <User size={18} className="mr-2" />}
-            {!isSignUp ? 'AUTHENTICATE' : 'CREATE ACCOUNT'}
+          <button type="submit" className="w-full mt-8 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg flex justify-center items-center transition-colors shadow-sm">
+            {!isSignUp ? <LogIn size={18} className="mr-2" /> : <UserPlus size={18} className="mr-2" />}
+            {!isSignUp ? 'Sign In to Workspace' : 'Create Account'}
           </button>
         </form>
+        
       </div>
+      
+      <p className="mt-8 text-sm text-slate-500">
+        By continuing, you agree to our <a href="#" className="text-indigo-600 hover:underline">Terms of Service</a> and <a href="#" className="text-indigo-600 hover:underline">Privacy Policy</a>.
+      </p>
     </div>
   );
 }

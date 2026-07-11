@@ -1,108 +1,88 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Activity, ArrowLeft, BookOpen, Terminal, Code, Cpu, Database } from 'lucide-react';
+import { BookOpen, Terminal, Cpu, Database } from 'lucide-react';
 
 export default function Documentation() {
-  const navigate = useNavigate();
-
   return (
-    <div className="min-h-screen bg-[#030712] text-gray-100 font-sans selection:bg-neon-cyan/30 flex flex-col relative overflow-hidden">
-      
-      {/* Background glow */}
-      <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-blue-500/5 blur-[150px] rounded-full pointer-events-none"></div>
-
-      <nav className="flex justify-between items-center px-8 py-4 border-b border-gray-800 bg-[#111827]/80 backdrop-blur-md shrink-0 shadow-md z-[100]">
-        <div className="flex items-center space-x-3">
-          <Activity className="text-neon-cyan animate-pulse" size={26} />
-          <h1 className="text-2xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-neon-cyan to-blue-500 uppercase">
-            OptiFlow
-          </h1>
+    <div className="flex-1 bg-slate-50 overflow-y-auto p-4 sm:p-8">
+      <div className="max-w-4xl mx-auto space-y-8">
+        
+        <div className="flex items-center space-x-3 mb-8">
+          <BookOpen size={32} className="text-indigo-600" />
+          <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">System Architecture Cheat-Sheet</h2>
         </div>
-        <div>
-          <button 
-            onClick={() => navigate(-1)}
-            className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors text-sm font-bold tracking-wider"
-          >
-            <ArrowLeft size={16} />
-            <span>BACK</span>
-          </button>
-        </div>
-      </nav>
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-8 z-10">
-        <div className="max-w-4xl mx-auto space-y-8">
+        {/* Endpoints */}
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm">
+          <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center border-b border-slate-100 pb-3">
+            <Terminal size={20} className="mr-2 text-indigo-500"/> Core Endpoints
+          </h3>
           
-          <div className="flex items-center space-x-3 mb-8">
-            <BookOpen size={32} className="text-neon-cyan" />
-            <h2 className="text-3xl font-bold text-white tracking-widest uppercase">System Architecture Cheat-Sheet</h2>
-          </div>
-
-          {/* Endpoints */}
-          <div className="bg-[#111827] border border-gray-800 rounded-xl p-6 shadow-lg">
-            <h3 className="text-xl font-bold text-white mb-4 flex items-center"><Terminal size={20} className="mr-2 text-blue-400"/> Core Endpoints</h3>
-            
-            <div className="space-y-4">
-              <div className="bg-[#0a0f1c] border border-gray-800 rounded p-4">
-                <p className="text-sm text-gray-400 mb-2 font-bold tracking-wider">DATA INGESTION API</p>
-                <div className="flex items-center space-x-4">
-                  <span className="bg-green-500/20 text-green-400 font-mono text-sm px-2 py-1 rounded">POST</span>
-                  <code className="text-neon-cyan font-mono text-sm">/api/v1/telemetry/ingest</code>
-                </div>
-                <p className="text-gray-400 text-sm mt-3 border-t border-gray-800 pt-2">
-                  Accepts JSON payloads tracking <code className="text-white">zone_id</code>, <code className="text-white">headcount</code>, and <code className="text-white">timestamp</code>.
-                </p>
+          <div className="space-y-6">
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-5">
+              <p className="text-xs text-slate-500 mb-3 font-bold tracking-wider uppercase">Data Ingestion API</p>
+              <div className="flex items-center space-x-4 mb-3">
+                <span className="bg-emerald-100 text-emerald-700 font-mono font-bold text-xs px-2.5 py-1 rounded">POST</span>
+                <code className="text-indigo-600 font-mono text-sm bg-indigo-50 px-2 py-0.5 rounded">/api/v1/telemetry/ingest</code>
               </div>
+              <p className="text-slate-600 text-sm">
+                Accepts JSON payloads tracking <code className="bg-slate-200 px-1 rounded text-slate-800">zone_id</code>, <code className="bg-slate-200 px-1 rounded text-slate-800">headcount</code>, and <code className="bg-slate-200 px-1 rounded text-slate-800">timestamp</code>.
+              </p>
+            </div>
 
-              <div className="bg-[#0a0f1c] border border-gray-800 rounded p-4">
-                <p className="text-sm text-gray-400 mb-2 font-bold tracking-wider">REAL-TIME STREAM</p>
-                <div className="flex items-center space-x-4">
-                  <span className="bg-blue-500/20 text-blue-400 font-mono text-sm px-2 py-1 rounded">WS</span>
-                  <code className="text-neon-cyan font-mono text-sm">/ws/dashboard/stream</code>
-                </div>
-                <p className="text-gray-400 text-sm mt-3 border-t border-gray-800 pt-2">
-                  Broadcasts unified agent evaluation states every 2 seconds.
-                </p>
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-5">
+              <p className="text-xs text-slate-500 mb-3 font-bold tracking-wider uppercase">Real-Time Stream</p>
+              <div className="flex items-center space-x-4 mb-3">
+                <span className="bg-blue-100 text-blue-700 font-mono font-bold text-xs px-2.5 py-1 rounded">WS</span>
+                <code className="text-indigo-600 font-mono text-sm bg-indigo-50 px-2 py-0.5 rounded">/ws/dashboard/stream</code>
               </div>
+              <p className="text-slate-600 text-sm">
+                Broadcasts unified agent evaluation states every 2 seconds over WebSockets.
+              </p>
             </div>
           </div>
+        </div>
 
-          {/* Orchestration Matrix */}
-          <div className="bg-[#111827] border border-gray-800 rounded-xl p-6 shadow-lg">
-            <h3 className="text-xl font-bold text-white mb-4 flex items-center"><Cpu size={20} className="mr-2 text-neon-amber"/> Orchestration Matrix</h3>
+        {/* Orchestration Matrix */}
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm">
+          <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center border-b border-slate-100 pb-3">
+            <Cpu size={20} className="mr-2 text-amber-500"/> Orchestration Matrix
+          </h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 hover:border-indigo-300 transition-colors">
+              <h4 className="text-indigo-700 font-bold font-mono mb-2 text-sm">DensityAgent</h4>
+              <p className="text-sm text-slate-600 leading-relaxed">Calculates current volume profiles based on raw ingested telemetry.</p>
+            </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-[#0a0f1c] border border-gray-800 rounded p-4 hover:border-gray-600 transition-colors">
-                <h4 className="text-neon-cyan font-bold font-mono mb-2">DensityAgent</h4>
-                <p className="text-sm text-gray-400">Calculates current volume profiles based on raw ingested telemetry.</p>
-              </div>
-              
-              <div className="bg-[#0a0f1c] border border-gray-800 rounded p-4 hover:border-gray-600 transition-colors">
-                <h4 className="text-blue-400 font-bold font-mono mb-2">PredictionAgent</h4>
-                <p className="text-sm text-gray-400">Runs an XGBoost regressor window looking 5 minutes ahead.</p>
-              </div>
-              
-              <div className="bg-[#0a0f1c] border border-gray-800 rounded p-4 hover:border-gray-600 transition-colors">
-                <h4 className="text-neon-amber font-bold font-mono mb-2">DecisionAgent</h4>
-                <p className="text-sm text-gray-400">Executes structural responses based on predefined safety thresholds.</p>
-              </div>
-              
-              <div className="bg-[#0a0f1c] border border-gray-800 rounded p-4 hover:border-gray-600 transition-colors">
-                <h4 className="text-green-400 font-bold font-mono mb-2">AlertAgent</h4>
-                <p className="text-sm text-gray-400">Packages telemetry updates and routes instructions over WebSockets.</p>
-              </div>
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 hover:border-blue-300 transition-colors">
+              <h4 className="text-blue-700 font-bold font-mono mb-2 text-sm">PredictionAgent</h4>
+              <p className="text-sm text-slate-600 leading-relaxed">Runs an XGBoost regressor window looking 5 minutes ahead.</p>
+            </div>
+            
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 hover:border-amber-300 transition-colors">
+              <h4 className="text-amber-700 font-bold font-mono mb-2 text-sm">DecisionAgent</h4>
+              <p className="text-sm text-slate-600 leading-relaxed">Executes structural responses based on predefined safety thresholds.</p>
+            </div>
+            
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 hover:border-emerald-300 transition-colors">
+              <h4 className="text-emerald-700 font-bold font-mono mb-2 text-sm">AlertAgent</h4>
+              <p className="text-sm text-slate-600 leading-relaxed">Packages telemetry updates and routes instructions over WebSockets.</p>
             </div>
           </div>
+        </div>
 
-          {/* Data Handling & Database Design */}
-          <div className="bg-[#111827] border border-gray-800 rounded-xl p-6 shadow-lg">
-            <h3 className="text-xl font-bold text-white mb-4 flex items-center"><Database size={20} className="mr-2 text-green-400"/> Where the Data is Being Read</h3>
-            <p className="text-sm text-gray-300 mb-6">
-              To ace the Data Handling (15%) and Database Design (10%) criteria, the system reads data from a tiered hybrid pipeline.
-            </p>
+        {/* Data Handling & Database Design */}
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm">
+          <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center border-b border-slate-100 pb-3">
+            <Database size={20} className="mr-2 text-emerald-500"/> Where the Data is Being Read
+          </h3>
+          <p className="text-sm text-slate-600 mb-6 leading-relaxed">
+            To ace the Data Handling (15%) and Database Design (10%) criteria, the system reads data from a tiered hybrid pipeline.
+          </p>
 
-            {/* ASCII Pipeline diagram */}
-            <div className="bg-gray-950 border border-gray-800 rounded-lg p-4 mb-6 overflow-x-auto custom-scrollbar">
-              <pre className="text-[10px] sm:text-xs text-neon-cyan font-mono leading-relaxed">
+          {/* ASCII Pipeline diagram */}
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 mb-8 overflow-x-auto shadow-inner">
+            <pre className="text-[10px] sm:text-xs text-indigo-300 font-mono leading-relaxed">
 {`[ Edge Sensors / Camera Telemetry ]
                │
                ▼
@@ -122,36 +102,34 @@ export default function Documentation() {
                                                            │
                                                            ▼
                                                 [ Live React Dashboards ]`}
-              </pre>
-            </div>
-
-            <div className="space-y-4">
-              <div className="bg-[#0a0f1c] border border-gray-800 rounded p-4">
-                <h4 className="text-white font-bold font-mono mb-1">Static Configuration Data (Read Once at Selection)</h4>
-                <p className="text-sm text-gray-400">
-                  When the user logs in and selects an event (e.g., IPL Match at Rajiv Gandhi International Cricket Stadium), the system queries PostgreSQL to read static tables containing zone boundaries, max capacities, precise GPS coordinates, and asset locations.
-                </p>
-              </div>
-              
-              <div className="bg-[#0a0f1c] border border-gray-800 rounded p-4">
-                <h4 className="text-white font-bold font-mono mb-1">Live Telemetry Streams (Read Constantly)</h4>
-                <p className="text-sm text-gray-400">
-                  The Python stream script pushes new counts every second. The backend writes these to a PostgreSQL hyper-table (TimescaleDB) and reads a rolling 60-second window to feed features to the ML forecasting model.
-                </p>
-              </div>
-
-              <div className="bg-[#0a0f1c] border border-gray-800 rounded p-4">
-                <h4 className="text-white font-bold font-mono mb-1">State Updates (Pushed via WebSockets)</h4>
-                <p className="text-sm text-gray-400">
-                  The React frontend never reads directly from the database. It maintains a high-speed WebSocket connection with FastAPI, listening to the processed state emitted by the multi-agent execution pipeline.
-                </p>
-              </div>
-            </div>
+            </pre>
           </div>
 
+          <div className="space-y-6">
+            <div>
+              <h4 className="text-slate-900 font-bold font-mono mb-2 text-sm">Static Configuration Data (Read Once at Selection)</h4>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                When the user logs in and selects an event (e.g., Pharma Pro & Pack Expo), the system queries PostgreSQL to read static tables containing zone boundaries, max capacities, precise GPS coordinates, and asset locations.
+              </p>
+            </div>
+            
+            <div>
+              <h4 className="text-slate-900 font-bold font-mono mb-2 text-sm">Live Telemetry Streams (Read Constantly)</h4>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                The Python stream script pushes new counts every second. The backend writes these to a PostgreSQL hyper-table (TimescaleDB) and reads a rolling 60-second window to feed features to the ML forecasting model.
+              </p>
+            </div>
+
+            <div>
+              <h4 className="text-slate-900 font-bold font-mono mb-2 text-sm">State Updates (Pushed via WebSockets)</h4>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                The React frontend never reads directly from the database. It maintains a high-speed WebSocket connection with FastAPI, listening to the processed state emitted by the multi-agent execution pipeline.
+              </p>
+            </div>
+          </div>
         </div>
+
       </div>
-      
     </div>
   );
 }

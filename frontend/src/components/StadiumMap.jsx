@@ -2,29 +2,29 @@ import React from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup, Polyline, Tooltip } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 
-const DEFAULT_CENTER = [17.4065, 78.5538];
+const DEFAULT_CENTER = [17.4727, 78.3725];
 
 const ZONE_COORDS = {
-  'A': [17.4070, 78.5538], // North
-  'B': [17.4065, 78.5543], // East
-  'C': [17.4060, 78.5538], // South
-  'D': [17.4065, 78.5533], // West
+  'A': [17.4730, 78.3725], // Hall 1
+  'B': [17.4724, 78.3728], // Hall 2
+  'C': [17.4724, 78.3722], // Hall 3
+  'D': [17.4735, 78.3725], // Open Arena
 };
 
 const EXIT_COORDS = {
-  'A': [17.4085, 78.5538],
-  'B': [17.4065, 78.5560],
-  'C': [17.4045, 78.5538],
-  'D': [17.4065, 78.5515],
+  'A': [17.4735, 78.3715],
+  'B': [17.4715, 78.3735],
+  'C': [17.4715, 78.3715],
+  'D': [17.4740, 78.3730],
 };
 
-export default function StadiumMap({ zoneStates, userLocation = null, customZoom = 16 }) {
-  const mapCenter = userLocation || DEFAULT_CENTER;
+export default function StadiumMap({ zoneStates, customZoom = 17 }) {
+  const mapCenter = DEFAULT_CENTER;
 
   const getColor = (capacityPct) => {
-    if (capacityPct > 85) return '#ef4444'; 
-    if (capacityPct >= 70) return '#eab308'; 
-    return '#22c55e'; 
+    if (capacityPct > 85) return '#ef4444'; // Red-500
+    if (capacityPct >= 70) return '#eab308'; // Yellow-500
+    return '#22c55e'; // Green-500
   };
 
   const getRadius = (capacityPct) => {
@@ -32,13 +32,10 @@ export default function StadiumMap({ zoneStates, userLocation = null, customZoom
   };
 
   return (
-    <div className="h-full w-full rounded-xl overflow-hidden border border-gray-800 shadow-[0_0_15px_rgba(0,243,255,0.15)] relative z-0">
-      <div className="absolute inset-0 border-2 border-neon-cyan/20 rounded-xl pointer-events-none z-[1000]"></div>
-      
-      {/* key forces map re-render if center changes dramatically */}
-      <MapContainer key={mapCenter.join(',')} center={mapCenter} zoom={customZoom} className="h-full w-full bg-gray-900" zoomControl={false}>
+    <div className="h-full w-full rounded-xl overflow-hidden relative z-0">
+      <MapContainer key={mapCenter.join(',')} center={mapCenter} zoom={customZoom} className="h-full w-full bg-slate-50" zoomControl={false}>
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://carto.com/">CARTO</a>'
         />
 
@@ -46,24 +43,12 @@ export default function StadiumMap({ zoneStates, userLocation = null, customZoom
         <CircleMarker
           center={DEFAULT_CENTER}
           radius={8}
-          pathOptions={{ color: '#8b5cf6', fillColor: '#8b5cf6', fillOpacity: 0.8, weight: 3 }}
+          pathOptions={{ color: '#4f46e5', fillColor: '#4f46e5', fillOpacity: 0.8, weight: 3 }}
         >
           <Popup>
-            <div className="text-xs font-mono font-bold text-gray-900">Main Stage</div>
+            <div className="text-xs font-semibold text-slate-800">Main Control Center</div>
           </Popup>
         </CircleMarker>
-
-        {userLocation && (
-          <CircleMarker
-            center={userLocation}
-            radius={6}
-            pathOptions={{ color: '#3b82f6', fillColor: '#3b82f6', fillOpacity: 1, weight: 2 }}
-          >
-            <Tooltip permanent direction="top" className="bg-blue-600 text-white border-0 font-bold text-[10px]">
-              YOU ARE HERE
-            </Tooltip>
-          </CircleMarker>
-        )}
 
         {Object.entries(EXIT_COORDS).map(([exitId, coords]) => (
           <CircleMarker
@@ -73,7 +58,7 @@ export default function StadiumMap({ zoneStates, userLocation = null, customZoom
             pathOptions={{ color: '#10b981', fillColor: '#10b981', fillOpacity: 0.9, weight: 2, dashArray: "4 4" }}
           >
             <Popup>
-              <div className="text-xs font-mono font-bold text-green-700">EXIT {exitId} (SAFE)</div>
+              <div className="text-xs font-semibold text-green-700">EXIT {exitId} (SAFE)</div>
             </Popup>
           </CircleMarker>
         ))}
@@ -90,24 +75,12 @@ export default function StadiumMap({ zoneStates, userLocation = null, customZoom
               {isCongested && (
                 <Polyline 
                   positions={[zoneCoord, exitCoord]} 
-                  pathOptions={{ color: '#00f3ff', weight: 4, dashArray: "10 10", className: 'animate-pulse' }}
+                  pathOptions={{ color: '#ef4444', weight: 4, dashArray: "5 5", className: 'animate-pulse' }}
                 >
-                  <Tooltip permanent direction="center" className="bg-gray-900 text-neon-cyan border border-neon-cyan font-mono text-[10px]">
+                  <Tooltip permanent direction="center" className="bg-red-50 text-red-600 border border-red-200 font-semibold text-[10px]">
                     Rerouting to Exit {zoneId}
                   </Tooltip>
                 </Polyline>
-              )}
-
-              {/* If user is here, draw path from user to exit when congested */}
-              {isCongested && userLocation && Math.abs(zoneCoord[0] - userLocation[0]) < 0.001 && (
-                 <Polyline 
-                 positions={[userLocation, exitCoord]} 
-                 pathOptions={{ color: '#3b82f6', weight: 3, dashArray: "5 5", className: 'animate-pulse' }}
-               >
-                 <Tooltip permanent direction="bottom" className="bg-blue-600 text-white border-0 font-mono text-[10px]">
-                   YOUR ESCAPE ROUTE
-                 </Tooltip>
-               </Polyline>
               )}
 
               <CircleMarker
@@ -121,7 +94,7 @@ export default function StadiumMap({ zoneStates, userLocation = null, customZoom
                 }}
               >
                 <Popup>
-                  <div className="text-xs font-mono text-gray-900">
+                  <div className="text-xs text-slate-800">
                     <strong>{areaName}</strong><br/>
                     Capacity: {Math.round(cap)}%<br/>
                     Predicted (5m): {Math.round(data.predicted_capacity_pct_5m)}%
