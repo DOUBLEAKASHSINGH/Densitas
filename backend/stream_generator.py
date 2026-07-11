@@ -9,8 +9,8 @@ import requests
 # Generates synthetic live foot traffic and pushes to a FastAPI endpoint.
 # ---------------------------------------------------------
 
-# Target FastAPI endpoint (to be built)
-FASTAPI_URL = "http://localhost:8000/api/telemetry"
+# Target FastAPI endpoint (Render Live URL)
+FASTAPI_URL = "https://optiflow-backend.onrender.com/api/telemetry"
 
 # Known zones from our seeded PostgreSQL database
 ZONES = [1, 2, 3]
