@@ -2,7 +2,6 @@ import React from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup, Polyline, Tooltip } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// Coordinates around Rajiv Gandhi International Cricket Stadium
 const CENTER = [17.4065, 78.5538];
 
 const ZONE_COORDS = {
@@ -13,17 +12,17 @@ const ZONE_COORDS = {
 };
 
 const EXIT_COORDS = {
-  'A': [17.4085, 78.5538], // Far North
-  'B': [17.4065, 78.5560], // Far East
-  'C': [17.4045, 78.5538], // Far South
-  'D': [17.4065, 78.5515], // Far West
+  'A': [17.4085, 78.5538],
+  'B': [17.4065, 78.5560],
+  'C': [17.4045, 78.5538],
+  'D': [17.4065, 78.5515],
 };
 
 export default function StadiumMap({ zoneStates }) {
   const getColor = (capacityPct) => {
-    if (capacityPct > 85) return '#ef4444'; // Red
-    if (capacityPct >= 70) return '#eab308'; // Yellow
-    return '#22c55e'; // Green
+    if (capacityPct > 85) return '#ef4444'; 
+    if (capacityPct >= 70) return '#eab308'; 
+    return '#22c55e'; 
   };
 
   const getRadius = (capacityPct) => {
@@ -40,7 +39,6 @@ export default function StadiumMap({ zoneStates }) {
           attribution='&copy; <a href="https://carto.com/">CARTO</a>'
         />
 
-        {/* Center Stage Marker */}
         <CircleMarker
           center={CENTER}
           radius={8}
@@ -51,7 +49,6 @@ export default function StadiumMap({ zoneStates }) {
           </Popup>
         </CircleMarker>
 
-        {/* Exits */}
         {Object.entries(EXIT_COORDS).map(([exitId, coords]) => (
           <CircleMarker
             key={`exit-${exitId}`}
@@ -65,16 +62,15 @@ export default function StadiumMap({ zoneStates }) {
           </CircleMarker>
         ))}
         
-        {/* Zones and Dynamic Routing */}
         {Object.entries(zoneStates).map(([zoneId, data]) => {
           const cap = data.current_capacity_pct;
           const isCongested = cap > 85;
           const zoneCoord = ZONE_COORDS[zoneId] || CENTER;
-          const exitCoord = EXIT_COORDS[zoneId]; // Nearest exit maps directly to same letter
+          const exitCoord = EXIT_COORDS[zoneId]; 
+          const areaName = data.meta_area || `Zone ${zoneId}`;
 
           return (
             <React.Fragment key={zoneId}>
-              {/* Dynamic Evacuation Route */}
               {isCongested && (
                 <Polyline 
                   positions={[zoneCoord, exitCoord]} 
@@ -86,7 +82,6 @@ export default function StadiumMap({ zoneStates }) {
                 </Polyline>
               )}
 
-              {/* Zone Heatmap Circle */}
               <CircleMarker
                 center={zoneCoord}
                 radius={getRadius(cap)}
@@ -99,7 +94,7 @@ export default function StadiumMap({ zoneStates }) {
               >
                 <Popup>
                   <div className="text-xs font-mono text-gray-900">
-                    <strong>Zone {zoneId}</strong><br/>
+                    <strong>{areaName}</strong><br/>
                     Capacity: {Math.round(cap)}%<br/>
                     Predicted (5m): {Math.round(data.predicted_capacity_pct_5m)}%
                   </div>

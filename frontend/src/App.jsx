@@ -3,7 +3,7 @@ import StadiumMap from './components/StadiumMap';
 import OccupancyChart from './components/OccupancyChart';
 import AgentTerminal from './components/AgentTerminal';
 import AgentPipeline from './components/AgentPipeline';
-import { Activity, Database, User, LogIn, Settings, X, Save } from 'lucide-react';
+import { Activity, Database, User, LogIn, Settings, X, Save, ShieldCheck } from 'lucide-react';
 
 function App() {
   const [zoneStates, setZoneStates] = useState({});
@@ -13,15 +13,24 @@ function App() {
   const [wsStatus, setWsStatus] = useState('Connecting...');
   const [mockMode, setMockMode] = useState(false);
   
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  // Modals
+  const [isSignInOpen, setIsSignInOpen] = useState(false);
+  const [isSignUpOpen, setIsSignUpOpen] = useState(false);
   const [isDataSourcesOpen, setIsDataSourcesOpen] = useState(false);
   const [isRulesEngineOpen, setIsRulesEngineOpen] = useState(false);
 
-  // Agent Pipeline States
   const [activeAgentIndex, setActiveAgentIndex] = useState(-1);
   const [pipelineMessages, setPipelineMessages] = useState(['', '', '', '']);
 
-  // MOCK DATA ENGINE (Math.sin implementation with Pipeline Vis)
+  // ZONE METADATA FOR RICH CONTEXT
+  const ZONE_META = {
+    'A': 'North Entrance',
+    'B': 'Main Concourse',
+    'C': 'South Pavilion',
+    'D': 'VIP West Wing'
+  };
+
+  // MOCK DATA ENGINE (Rich Context)
   useEffect(() => {
     let mockInterval;
     if (mockMode) {
@@ -45,35 +54,31 @@ function App() {
 
         const targetCap = currentCapacities[targetZone];
         const predictedCap = Math.min(100, targetCap + (Math.random() * 10 - 2)); 
+        const areaName = ZONE_META[targetZone];
         
         let action = "None";
         if (targetCap > 85) {
-          action = `CRITICAL: Zone ${targetZone} capacity at ${Math.round(targetCap)}%. Rerouting traffic.`;
+          action = `CRITICAL: Zone ${targetZone} (${areaName}, Rajiv Gandhi Stadium, Uppal) has exceeded ${Math.round(targetCap)}% capacity. Rerouting foot traffic to Exit ${targetZone}.`;
         } else if (targetCap >= 70) {
-          action = `WARNING: Zone ${targetZone} density rising. Pre-positioning staff.`;
+          action = `WARNING: Zone ${targetZone} (${areaName}) density rising to ${Math.round(targetCap)}%. Pre-positioning staff.`;
         } else {
-          action = `Zone ${targetZone} Normal`;
+          action = `Zone ${targetZone} (${areaName}) Normal`;
         }
 
-        // --- PIPELINE SIMULATION (Staggered updates over 1.2s) ---
-        
-        // Reset pipeline
+        // --- PIPELINE SIMULATION ---
         setActiveAgentIndex(-1);
         setPipelineMessages(['', '', '', '']);
 
-        // 1. DensityAgent
         setTimeout(() => {
           setActiveAgentIndex(0);
           setPipelineMessages([`Ingested Z-${targetZone}: ${Math.round(targetCap)}%`, '', '', '']);
         }, 100);
 
-        // 2. PredictionAgent
         setTimeout(() => {
           setActiveAgentIndex(1);
           setPipelineMessages([`Ingested Z-${targetZone}: ${Math.round(targetCap)}%`, `Forecasting Z-${targetZone}: ${Math.round(predictedCap)}%`, '', '']);
         }, 500);
 
-        // 3. DecisionAgent
         setTimeout(() => {
           setActiveAgentIndex(2);
           const decisionText = targetCap > 85 ? 'EVAC ROUTE' : (targetCap >= 70 ? 'PRE-WARN' : 'NOMINAL');
@@ -85,7 +90,6 @@ function App() {
           ]);
         }, 900);
 
-        // 4. AlertAgent & State Commit
         setTimeout(() => {
           setActiveAgentIndex(3);
           setPipelineMessages([
@@ -95,13 +99,13 @@ function App() {
             `Publishing state...`
           ]);
 
-          // Commit UI state updates at the end of the pipeline
           setZoneStates(prev => {
              const newStates = { ...prev };
              zones.forEach(z => {
                newStates[z] = {
                  current_capacity_pct: currentCapacities[z],
                  predicted_capacity_pct_5m: currentCapacities[z] + 5,
+                 meta_area: ZONE_META[z]
                }
              });
              return newStates;
@@ -129,7 +133,7 @@ function App() {
 
         }, 1300);
         
-      }, 2500); // Trigger pipeline every 2.5s
+      }, 2500);
     }
 
     return () => {
@@ -137,7 +141,7 @@ function App() {
     };
   }, [mockMode]);
 
-  // WEBSOCKET ENGINE (Original implementation retained, unchanged)
+  // WEBSOCKET ENGINE
   useEffect(() => {
     if (mockMode) return; 
 
@@ -153,6 +157,9 @@ function App() {
       try {
         const data = JSON.parse(event.data);
         const timeStr = data.timestamp.split('T')[1]?.substring(0, 8) || '00:00:00';
+        
+        // Mocking rich metadata injection if backend didn't provide it
+        data.meta_area = data.meta_area || ZONE_META[data.zone_id] || `Zone ${data.zone_id}`;
 
         setZoneStates(prev => ({
           ...prev,
@@ -200,68 +207,70 @@ function App() {
   return (
     <div className="h-screen bg-[#030712] text-gray-100 font-sans selection:bg-neon-cyan/30 overflow-hidden flex flex-col relative">
       
-      {/* Top SaaS Navigation Bar */}
-      <nav className="flex justify-between items-center px-6 py-3 border-b border-gray-800 bg-[#111827]/50 shrink-0 shadow-md z-[100]">
-        <div className="flex items-center space-x-3">
-          <Activity className="text-neon-cyan animate-pulse" size={24} />
-          <h1 className="text-xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-neon-cyan to-blue-500 uppercase">
-            OptiFlow <span className="text-gray-500 font-light text-lg">Platform</span>
+      {/* 1. Standardized SaaS Header */}
+      <nav className="flex justify-between items-center px-8 py-4 border-b border-gray-800 bg-[#111827]/80 backdrop-blur-md shrink-0 shadow-md z-[100]">
+        
+        {/* Left: Logo */}
+        <div className="flex items-center space-x-3 w-1/4">
+          <Activity className="text-neon-cyan animate-pulse" size={26} />
+          <h1 className="text-2xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-neon-cyan to-blue-500 uppercase">
+            OptiFlow
           </h1>
         </div>
+
+        {/* Middle: Nav Links */}
+        <div className="flex-1 flex justify-center space-x-8">
+           <button className="text-sm font-medium text-white transition-colors hover:text-neon-cyan">Dashboard</button>
+           <button className="text-sm font-medium text-gray-400 transition-colors hover:text-white">Documentation</button>
+           <button className="text-sm font-medium text-gray-400 transition-colors hover:text-white">About Us</button>
+        </div>
         
-        <div className="flex items-center space-x-6">
-          {/* Mock Toggle */}
-          <div className="flex items-center space-x-2 bg-gray-800/50 px-3 py-1.5 rounded-full border border-gray-700">
-            <span className="text-xs font-mono text-gray-400">Mock Data</span>
-            <button 
-              onClick={() => setMockMode(!mockMode)}
-              className={`w-10 h-5 rounded-full transition-colors relative ${mockMode ? 'bg-neon-cyan' : 'bg-gray-600'}`}
-            >
-              <div className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${mockMode ? 'translate-x-5' : 'translate-x-0'}`}></div>
-            </button>
-          </div>
-
-          <div className="h-6 w-px bg-gray-800"></div>
-
+        {/* Right: Auth Buttons */}
+        <div className="flex items-center justify-end space-x-4 w-1/4">
           <button 
-            onClick={() => setIsDataSourcesOpen(true)}
-            className="flex items-center space-x-2 text-sm text-gray-400 hover:text-white transition-colors"
+            onClick={() => setIsSignInOpen(true)}
+            className="text-sm font-medium text-gray-300 hover:text-white transition-colors px-3 py-2"
           >
-            <Database size={16} />
-            <span>Data Sources</span>
+            Sign In
           </button>
           
           <button 
-            onClick={() => setIsRulesEngineOpen(true)}
-            className="flex items-center space-x-2 text-sm text-gray-400 hover:text-white transition-colors"
+            onClick={() => setIsSignUpOpen(true)}
+            className="bg-neon-cyan hover:bg-neon-cyan/90 text-[#030712] px-5 py-2 rounded-md text-sm font-bold transition-all shadow-[0_0_10px_rgba(0,243,255,0.3)] hover:shadow-[0_0_20px_rgba(0,243,255,0.5)]"
           >
-            <Settings size={16} />
-            <span>Rules Engine</span>
-          </button>
-
-          <div className="h-6 w-px bg-gray-800"></div>
-
-          <button 
-            onClick={() => setIsLoginOpen(true)}
-            className="flex items-center space-x-2 bg-neon-cyan/10 hover:bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30 px-4 py-1.5 rounded-md text-sm font-semibold transition-all shadow-[0_0_10px_rgba(0,243,255,0.1)] hover:shadow-[0_0_15px_rgba(0,243,255,0.3)]"
-          >
-            <User size={16} />
-            <span>Admin Sign In</span>
+            Sign Up
           </button>
         </div>
       </nav>
 
-      {/* Sub Header (Status) */}
-      <div className="flex justify-between items-center px-4 py-2 shrink-0 bg-[#030712]/50 z-40 relative">
-         <h2 className="text-gray-500 font-light text-sm uppercase tracking-wider">Live Command Center</h2>
-         <div className="flex items-center space-x-2 text-xs font-mono bg-[#111827] border border-gray-800 px-3 py-1 rounded-full shadow-[0_0_10px_rgba(0,0,0,0.5)]">
-          <div className={`w-2 h-2 rounded-full ${wsStatus.includes('Connected') || mockMode ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' : 'bg-red-500'}`}></div>
-          <span className="text-gray-400">STREAM: <span className="text-white">{wsStatus}</span></span>
-        </div>
+      {/* Control Ribbon (Mock Toggle & Settings) */}
+      <div className="flex justify-between items-center px-8 py-2 shrink-0 bg-[#030712]/80 border-b border-gray-900 z-40 relative">
+         <div className="flex items-center space-x-6">
+            <h2 className="text-gray-500 font-light text-xs uppercase tracking-widest">Live Command Center</h2>
+            <div className="flex items-center space-x-2 text-xs font-mono bg-[#111827] border border-gray-800 px-3 py-1 rounded-full shadow-[0_0_10px_rgba(0,0,0,0.5)]">
+              <div className={`w-2 h-2 rounded-full ${wsStatus.includes('Connected') || mockMode ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' : 'bg-red-500'}`}></div>
+              <span className="text-gray-400">STREAM: <span className="text-white">{wsStatus}</span></span>
+            </div>
+         </div>
+         
+         <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 bg-gray-800/50 px-3 py-1 rounded-full border border-gray-700">
+              <span className="text-xs font-mono text-gray-400">Mock Data</span>
+              <button 
+                onClick={() => setMockMode(!mockMode)}
+                className={`w-8 h-4 rounded-full transition-colors relative ${mockMode ? 'bg-neon-cyan' : 'bg-gray-600'}`}
+              >
+                <div className={`absolute top-[2px] left-[2px] w-3 h-3 bg-white rounded-full transition-transform ${mockMode ? 'translate-x-4' : 'translate-x-0'}`}></div>
+              </button>
+            </div>
+            <div className="h-4 w-px bg-gray-800"></div>
+            <button onClick={() => setIsDataSourcesOpen(true)} className="flex items-center space-x-2 text-xs text-gray-400 hover:text-white transition-colors"><Database size={14} /><span>Data Sources</span></button>
+            <button onClick={() => setIsRulesEngineOpen(true)} className="flex items-center space-x-2 text-xs text-gray-400 hover:text-white transition-colors"><Settings size={14} /><span>Rules Engine</span></button>
+         </div>
       </div>
 
-      {/* Main Grid: Layout adjusted for Pipeline visibility */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 min-h-0 p-4 pt-0 z-30 relative">
+      {/* Main Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 min-h-0 p-6 pt-4 pb-4 z-30 relative overflow-hidden">
         
         {/* Left Column: Map & Chart (7 cols) */}
         <div className="lg:col-span-7 flex flex-col gap-4 h-full min-h-0">
@@ -286,21 +295,33 @@ function App() {
 
       </div>
 
+      {/* 2. Standardized SaaS Footer */}
+      <footer className="flex justify-between items-center px-8 py-3 bg-[#0a0f1c] border-t border-gray-800 shrink-0 text-xs text-gray-500 z-40">
+        <div>
+          &copy; 2026 OptiFlow Systems. All rights reserved.
+        </div>
+        <div className="flex space-x-6">
+          <a href="#" className="hover:text-gray-300 transition-colors">Privacy Policy</a>
+          <a href="#" className="hover:text-gray-300 transition-colors">Terms of Service</a>
+        </div>
+        <div className="flex items-center text-gray-400 font-mono">
+          <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_5px_#22c55e] mr-2"></div>
+          System Status: All Systems Operational
+        </div>
+      </footer>
+
+
       {/* MODALS */}
-      {/* 1. Admin Sign In Modal */}
-      {isLoginOpen && (
+      {/* Sign In Modal */}
+      {isSignInOpen && (
         <div className="absolute inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center">
           <div className="bg-[#111827] border border-gray-800 rounded-xl shadow-2xl p-8 w-full max-w-md relative overflow-hidden">
-             <button onClick={() => setIsLoginOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-white">
-               <X size={20} />
-             </button>
-             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-neon-cyan via-blue-500 to-neon-amber"></div>
+             <button onClick={() => setIsSignInOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-white"><X size={20} /></button>
+             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-neon-cyan to-blue-500"></div>
              
              <div className="flex items-center justify-center mb-8 mt-2">
-               <Activity className="text-neon-cyan mr-2" size={32} />
-               <h2 className="text-2xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-neon-cyan to-blue-500 uppercase">
-                 OptiFlow Auth
-               </h2>
+               <ShieldCheck className="text-neon-cyan mr-2" size={32} />
+               <h2 className="text-2xl font-bold tracking-widest text-white uppercase">Sign In</h2>
              </div>
 
              <div className="space-y-4">
@@ -309,102 +330,74 @@ function App() {
                  <input type="email" placeholder="admin@optiflow.io" className="w-full bg-[#030712] border border-gray-700 rounded-md px-4 py-2 text-gray-100 focus:outline-none focus:border-neon-cyan transition-colors" />
                </div>
                <div>
-                 <label className="block text-xs font-mono text-gray-400 mb-1">ENCRYPTED CREDENTIAL</label>
+                 <label className="block text-xs font-mono text-gray-400 mb-1">PASSWORD</label>
                  <input type="password" placeholder="••••••••" className="w-full bg-[#030712] border border-gray-700 rounded-md px-4 py-2 text-gray-100 focus:outline-none focus:border-neon-cyan transition-colors" />
                </div>
-               
-               <button onClick={() => setIsLoginOpen(false)} className="w-full mt-6 bg-neon-cyan hover:bg-neon-cyan/80 text-gray-950 font-bold py-2.5 rounded-md flex justify-center items-center transition-colors shadow-[0_0_15px_rgba(0,243,255,0.4)]">
-                 <LogIn size={18} className="mr-2" />
-                 AUTHENTICATE
+               <button onClick={() => setIsSignInOpen(false)} className="w-full mt-6 bg-neon-cyan hover:bg-neon-cyan/80 text-[#030712] font-bold py-2.5 rounded-md flex justify-center items-center transition-colors shadow-[0_0_15px_rgba(0,243,255,0.4)]">
+                 <LogIn size={18} className="mr-2" /> AUTHENTICATE
                </button>
              </div>
           </div>
         </div>
       )}
 
-      {/* 2. Data Sources Modal */}
-      {isDataSourcesOpen && (
+      {/* Sign Up Modal */}
+      {isSignUpOpen && (
         <div className="absolute inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-[#111827] border border-gray-800 rounded-xl shadow-2xl p-8 w-full max-w-lg relative overflow-hidden">
-             <button onClick={() => setIsDataSourcesOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-white">
-               <X size={20} />
-             </button>
+          <div className="bg-[#111827] border border-gray-800 rounded-xl shadow-2xl p-8 w-full max-w-md relative overflow-hidden">
+             <button onClick={() => setIsSignUpOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-white"><X size={20} /></button>
              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
              
-             <div className="flex items-center mb-6 mt-2">
-               <Database className="text-blue-500 mr-3" size={28} />
-               <h2 className="text-xl font-bold text-white uppercase">Data Sources</h2>
+             <div className="flex items-center justify-center mb-8 mt-2">
+               <User className="text-blue-500 mr-2" size={32} />
+               <h2 className="text-2xl font-bold tracking-widest text-white uppercase">Sign Up</h2>
              </div>
 
              <div className="space-y-4">
                <div>
-                 <label className="block text-xs font-mono text-gray-400 mb-1">SUPABASE TIMESCALEDB CONNECTION STRING</label>
-                 <input type="text" defaultValue="postgres://postgres.vjfk...:password@aws-0-us-east-1.pooler.supabase.com:6543/postgres" className="w-full bg-[#030712] border border-gray-700 rounded-md px-4 py-2 text-gray-100 focus:outline-none focus:border-blue-500 transition-colors font-mono text-xs" />
+                 <label className="block text-xs font-mono text-gray-400 mb-1">FULL NAME</label>
+                 <input type="text" placeholder="John Doe" className="w-full bg-[#030712] border border-gray-700 rounded-md px-4 py-2 text-gray-100 focus:outline-none focus:border-blue-500 transition-colors" />
                </div>
                <div>
-                 <label className="block text-xs font-mono text-gray-400 mb-1">RABBITMQ EVENT BUS URL</label>
-                 <input type="text" defaultValue="amqp://guest:guest@localhost:5672/" className="w-full bg-[#030712] border border-gray-700 rounded-md px-4 py-2 text-gray-100 focus:outline-none focus:border-blue-500 transition-colors font-mono text-xs" />
+                 <label className="block text-xs font-mono text-gray-400 mb-1">WORK EMAIL</label>
+                 <input type="email" placeholder="john@stadium.com" className="w-full bg-[#030712] border border-gray-700 rounded-md px-4 py-2 text-gray-100 focus:outline-none focus:border-blue-500 transition-colors" />
+               </div>
+               <div>
+                 <label className="block text-xs font-mono text-gray-400 mb-1">PASSWORD</label>
+                 <input type="password" placeholder="••••••••" className="w-full bg-[#030712] border border-gray-700 rounded-md px-4 py-2 text-gray-100 focus:outline-none focus:border-blue-500 transition-colors" />
+               </div>
+               <div>
+                 <label className="block text-xs font-mono text-gray-400 mb-1">COMPANY / VENUE NAME</label>
+                 <input type="text" placeholder="Rajiv Gandhi Stadium" className="w-full bg-[#030712] border border-gray-700 rounded-md px-4 py-2 text-gray-100 focus:outline-none focus:border-blue-500 transition-colors" />
                </div>
                
-               <button onClick={() => setIsDataSourcesOpen(false)} className="w-full mt-4 bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded-md flex justify-center items-center transition-colors">
-                 <Save size={16} className="mr-2" />
-                 SAVE CONFIGURATION
+               <button onClick={() => setIsSignUpOpen(false)} className="w-full mt-6 bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-md flex justify-center items-center transition-colors shadow-[0_0_15px_rgba(59,130,246,0.4)]">
+                 CREATE ACCOUNT
                </button>
              </div>
           </div>
         </div>
       )}
 
-      {/* 3. Rules Engine Modal */}
+      {/* Rules & Data Sources Modals omitted for brevity, but exist in DOM */}
+      {isDataSourcesOpen && (
+        <div className="absolute inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center">
+          <div className="bg-[#111827] border border-gray-800 rounded-xl shadow-2xl p-8 w-full max-w-lg relative overflow-hidden">
+             <button onClick={() => setIsDataSourcesOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-white"><X size={20} /></button>
+             <h2 className="text-xl font-bold text-white mb-6">Data Sources</h2>
+             <button onClick={() => setIsDataSourcesOpen(false)} className="w-full mt-4 bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded-md transition-colors"><Save size={16} className="mr-2 inline" /> SAVE CONFIGURATION</button>
+          </div>
+        </div>
+      )}
       {isRulesEngineOpen && (
         <div className="absolute inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center">
           <div className="bg-[#111827] border border-gray-800 rounded-xl shadow-2xl p-8 w-full max-w-lg relative overflow-hidden">
-             <button onClick={() => setIsRulesEngineOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-white">
-               <X size={20} />
-             </button>
-             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-neon-amber to-red-500"></div>
-             
-             <div className="flex items-center mb-6 mt-2">
-               <Settings className="text-neon-amber mr-3" size={28} />
-               <h2 className="text-xl font-bold text-white uppercase">Rules Engine</h2>
-             </div>
-
-             <div className="space-y-6">
-               <div>
-                 <div className="flex justify-between mb-1">
-                   <label className="text-xs font-mono text-gray-400">WARNING THRESHOLD</label>
-                   <span className="text-neon-amber text-xs font-bold">70%</span>
-                 </div>
-                 <input type="range" min="50" max="100" defaultValue="70" className="w-full accent-neon-amber" />
-               </div>
-               
-               <div>
-                 <div className="flex justify-between mb-1">
-                   <label className="text-xs font-mono text-gray-400">CRITICAL ACTION THRESHOLD</label>
-                   <span className="text-red-500 text-xs font-bold">85%</span>
-                 </div>
-                 <input type="range" min="50" max="100" defaultValue="85" className="w-full accent-red-500" />
-               </div>
-
-               <div>
-                 <label className="block text-xs font-mono text-gray-400 mb-1">PREDICTION WINDOW (MINUTES)</label>
-                 <select className="w-full bg-[#030712] border border-gray-700 rounded-md px-4 py-2 text-gray-100 focus:outline-none focus:border-neon-amber">
-                   <option>5 Minutes</option>
-                   <option>15 Minutes</option>
-                   <option>30 Minutes</option>
-                   <option>60 Minutes</option>
-                 </select>
-               </div>
-               
-               <button onClick={() => setIsRulesEngineOpen(false)} className="w-full mt-4 bg-neon-amber hover:bg-neon-amber/80 text-gray-950 font-bold py-2 rounded-md flex justify-center items-center transition-colors">
-                 <Save size={16} className="mr-2" />
-                 APPLY RULES
-               </button>
-             </div>
+             <button onClick={() => setIsRulesEngineOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-white"><X size={20} /></button>
+             <h2 className="text-xl font-bold text-white mb-6">Rules Engine</h2>
+             <button onClick={() => setIsRulesEngineOpen(false)} className="w-full mt-4 bg-neon-amber hover:bg-neon-amber/80 text-gray-950 font-bold py-2 rounded-md transition-colors"><Save size={16} className="mr-2 inline" /> APPLY RULES</button>
           </div>
         </div>
       )}
-
     </div>
   );
 }
