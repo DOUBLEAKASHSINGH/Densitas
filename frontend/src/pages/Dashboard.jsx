@@ -123,9 +123,9 @@ export default function Dashboard() {
             }
           }));
 
-          setChartData(prev => {
-            const newData = [...prev, { time: timeStr, current: targetCap, predicted: predictedCap, zone: targetZone }];
-            return newData.slice(-20);
+          setChartData(prevData => {
+            const newIncomingPacket = { time: timeStr, current: targetCap, predicted: predictedCap, zone: targetZone };
+            return [...prevData, newIncomingPacket].slice(-20);
           });
 
           setLogs(prev => {
