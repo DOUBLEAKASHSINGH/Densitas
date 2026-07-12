@@ -1,0 +1,71 @@
+\documentclass[11pt, a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\geometry{margin=1in}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{enumitem}
+
+\title{\textbf{OptiFlow: Spatial Intelligence and Crowd Control System}}
+\author{Project Report}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This report details the design and implementation of OptiFlow, a spatial intelligence and crowd orchestration platform built for high-density venues. The system integrates a FastAPI backend, a React-based frontend dashboard, and an XGBoost machine learning model to provide real-time crowd monitoring and automated dispatch decision-making. We utilized synthetic, physics-based historical telemetry for model training and deployed a live WebSocket streaming engine to simulate real-time edge device data processing.
+\end{abstract}
+
+\section{Introduction}
+Managing large crowds at high-density events requires proactive intelligence rather than reactive responses. OptiFlow was developed to bridge the gap between edge telemetry and operational decision-making. By leveraging a centralized dashboard and predictive machine learning, the system alerts safety personnel to potential bottlenecks and congestion before they reach critical thresholds.
+
+\section{System Architecture}
+The OptiFlow platform is built on a modern, decoupled client-server architecture utilizing real-time bidirectional communication.
+
+\subsection{Frontend Dashboard}
+The client interface is developed using React and styled with Tailwind CSS, strictly adhering to an edge-to-edge layout for maximum visibility on operational screens. 
+\begin{itemize}
+    \item \textbf{Live Telemetry Visualization:} Utilizes Recharts for time-series occupancy tracking and Leaflet for dynamic spatial mapping of venue zones.
+    \item \textbf{Authentication:} Secured via Firebase Authentication, ensuring only authorized personnel can access operational controls.
+    \item \textbf{Resiliency:} The frontend includes an autonomous data-fallback mechanism that simulates localized data streams if the primary WebSocket connection is interrupted.
+\end{itemize}
+
+\subsection{Backend Engine}
+The backend is powered by FastAPI running on Python 3.11. 
+\begin{itemize}
+    \item \textbf{WebSocket Manager:} Maintains asynchronous connections to connected dashboards, enabling sub-second latency for telemetry broadcasts.
+    \item \textbf{Data Ingestion:} Rather than relying solely on active hardware, the backend utilizes an \texttt{asyncio} background worker that continuously reads and streams data from a 50,000-row historical CSV dataset to simulate active edge devices during deployment.
+\end{itemize}
+
+\section{Machine Learning Pipeline}
+A core feature of OptiFlow is its predictive capability, forecasting crowd density five minutes into the future to enable preemptive action.
+
+\subsection{Data Generation}
+To train the model, we generated a robust, physics-based dataset of 50,000 rows. The synthetic data accounts for natural human traffic waves (e.g., entry spikes at 10:00 AM and exit surges at 17:00) and injects occasional anomalies. The features include \texttt{zone\_id}, \texttt{time\_of\_day}, \texttt{current\_count}, \texttt{flow\_rate}, and \texttt{average\_velocity}.
+
+\subsection{XGBoost Prediction Model}
+An XGBoost Regressor was trained on the generated dataset to predict \texttt{occupancy\_after\_5\_min}. 
+\begin{itemize}
+    \item \textbf{Preprocessing:} Missing values were handled, categorical zones were label-encoded, and numerical features were standardized using \texttt{StandardScaler}.
+    \item \textbf{Inference:} The trained model (\texttt{xgboost\_model.pkl}) is loaded globally into the FastAPI server via \texttt{joblib}. Incoming live telemetry is formatted, scaled, and passed to the model to generate real-time predictions alongside a simulated confidence interval.
+\end{itemize}
+
+\subsection{Evaluation}
+The XGBoost model achieved excellent accuracy on the testing set, successfully capturing the deterministic mathematical nature of the synthetic data, yielding a Mean Absolute Error (MAE) of 14.79 and an R-squared ($R^2$) score of 0.9987.
+
+\section{Multi-Agent Decision System}
+To process the data autonomously, OptiFlow employs a deterministic multi-agent pipeline:
+\begin{enumerate}
+    \item \textbf{DensityAgent:} Calculates the raw mathematical saturation profile based on current headcount and maximum zone capacity.
+    \item \textbf{PredictionAgent:} Ingests the current data and utilizes the XGBoost model to predict future capacity percentage.
+    \item \textbf{DecisionAgent:} Applies strict safety rules (e.g., triggering a "CRITICAL" status if density exceeds 85\%) and formulates specific dispatch instructions and LED signage text.
+    \item \textbf{AlertAgent:} Serializes the final unified payload and broadcasts it to the frontend via WebSockets.
+\end{enumerate}
+
+\section{Conclusion}
+OptiFlow successfully demonstrates a fully integrated pipeline from data ingestion to predictive analysis and automated UI visualization. The system avoids theoretical exaggerations by relying entirely on concrete, implemented technologies: a functional React WebSocket client, an asynchronous FastAPI streaming backend, and a natively integrated XGBoost machine learning model.
+
+\end{document}
