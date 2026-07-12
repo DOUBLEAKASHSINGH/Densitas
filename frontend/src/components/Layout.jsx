@@ -22,7 +22,7 @@ export default function Layout() {
       
       {/* Global Header (Fixed Height) */}
       <header className="flex-none bg-white border-b border-slate-200 z-50 shadow-sm h-16">
-        <div className="max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
+        <div className="w-full px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
           
           {/* Logo */}
           <div className="flex items-center space-x-2 cursor-pointer" onClick={() => navigate('/dashboard')}>
@@ -54,7 +54,7 @@ export default function Layout() {
 
       {/* Global Footer (Fixed Height) */}
       <footer className="flex-none bg-white border-t border-slate-200 py-3 h-12">
-        <div className="max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-8 h-full flex flex-row justify-between items-center text-xs text-slate-500">
+        <div className="w-full px-4 sm:px-6 lg:px-8 h-full flex flex-row justify-between items-center text-xs text-slate-500">
           <div>&copy; 2026 OptiFlow Systems. All rights reserved.</div>
           <div className="flex items-center space-x-6">
              <div className="flex items-center space-x-2">

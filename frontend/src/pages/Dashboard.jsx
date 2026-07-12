@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import StadiumMap from '../components/StadiumMap';
 import OccupancyChart from '../components/OccupancyChart';
@@ -15,7 +15,7 @@ export default function Dashboard() {
   const [zoneStates, setZoneStates] = useState({});
   const [chartData, setChartData] = useState([]);
   const [logs, setLogs] = useState([]);
-  const [wsStatus, setWsStatus] = useState('Connected (Live Render)');
+  const [wsStatus, setWsStatus] = useState('Connecting...');
   
   const [activeAgentIndex, setActiveAgentIndex] = useState(-1);
   const [pipelineMessages, setPipelineMessages] = useState(['', '', '', '']);
@@ -39,56 +39,166 @@ export default function Dashboard() {
     'D': 'Open Arena'
   };
 
+  // WebSocket Connection
   useEffect(() => {
-    if (!eventData) return; // Wait for redirect if no data
+    if (!eventData) return;
 
-    const ws = new WebSocket('wss://optiflow-backend.onrender.com/ws/dashboard');
-    
-    ws.onopen = () => {
-      setWsStatus('Connected (Live Render)');
-    };
+    let ws;
+    try {
+      ws = new WebSocket('wss://optiflow-backend.onrender.com/ws/dashboard');
+      
+      ws.onopen = () => {
+        setWsStatus('Connected (Live Render)');
+      };
 
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        
-        const zoneMap = { 1: 'A', 2: 'B', 3: 'C', 4: 'D' };
-        const targetZone = zoneMap[data.zone_id] || 'A';
-        
-        const targetCap = data.current_capacity_pct;
-        const predictedCap = data.predicted_capacity_pct_5m;
-        const action = data.action_required || 'None';
-        const timestamp = data.timestamp || new Date().toISOString();
-        const timeStr = timestamp.split('T')[1] ? timestamp.split('T')[1].substring(0, 8) : timestamp;
-        const areaName = ZONE_META[targetZone] || `Zone ${targetZone}`;
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          
+          const zoneMap = { 1: 'A', 2: 'B', 3: 'C', 4: 'D' };
+          const targetZone = zoneMap[data.zone_id] || 'A';
+          
+          const targetCap = data.current_capacity_pct;
+          const predictedCap = data.predicted_capacity_pct_5m;
+          const action = data.action_required || 'None';
+          const timestamp = data.timestamp || new Date().toISOString();
+          const timeStr = timestamp.split('T')[1] ? timestamp.split('T')[1].substring(0, 8) : timestamp;
+          const areaName = ZONE_META[targetZone] || `Zone ${targetZone}`;
 
-        setActiveAgentIndex(3); 
-        setPipelineMessages([`Ingested ${targetCap}%`, `Predicted ${predictedCap}%`, `Decision applied`, `Published`]);
+          setActiveAgentIndex(3); 
+          setPipelineMessages([`Ingested ${targetCap}%`, `Predicted ${predictedCap}%`, `Decision applied`, `Published`]);
 
-        let newSignage = "ENJOY THE EVENT";
+          let newSignage = "ENJOY THE EVENT";
 
-        if (targetCap > criticalThreshold || action.includes('CRITICAL')) {
-          newSignage = `WARNING: ${areaName.toUpperCase()} CONGESTED. USE ALTERNATE ROUTES.`;
-          setDispatchRoster(prev => [
-            { id: 'T-Alpha', status: 'Deployed (Code Red)', zone: areaName },
-            { id: 'T-Bravo', status: prev[1].status, zone: prev[1].zone },
-            { id: 'T-Charlie', status: prev[2].status, zone: prev[2].zone }
-          ]);
-        } else if (targetCap >= warningThreshold || action.includes('WARNING')) {
-          newSignage = `PLEASE PROCEED CAREFULLY NEAR ${areaName.toUpperCase()}.`;
-          setDispatchRoster(prev => [
-            { id: 'T-Alpha', status: 'Monitoring', zone: areaName },
-            { id: 'T-Bravo', status: 'Standby', zone: 'None' },
-            { id: 'T-Charlie', status: prev[2].status, zone: prev[2].zone }
-          ]);
-        } else {
-          setDispatchRoster([
-            { id: 'T-Alpha', status: 'Patrolling', zone: 'General' },
-            { id: 'T-Bravo', status: 'Standby', zone: 'HQ' },
-            { id: 'T-Charlie', status: 'Patrolling', zone: 'Outer Perimeter' }
-          ]);
+          if (targetCap > criticalThreshold || action.includes('CRITICAL')) {
+            newSignage = `WARNING: ${areaName.toUpperCase()} CONGESTED. USE ALTERNATE ROUTES.`;
+            setDispatchRoster(prev => [
+              { id: 'T-Alpha', status: 'Deployed (Code Red)', zone: areaName },
+              { id: 'T-Bravo', status: prev[1].status, zone: prev[1].zone },
+              { id: 'T-Charlie', status: prev[2].status, zone: prev[2].zone }
+            ]);
+          } else if (targetCap >= warningThreshold || action.includes('WARNING')) {
+            newSignage = `PLEASE PROCEED CAREFULLY NEAR ${areaName.toUpperCase()}.`;
+            setDispatchRoster(prev => [
+              { id: 'T-Alpha', status: 'Monitoring', zone: areaName },
+              { id: 'T-Bravo', status: 'Standby', zone: 'None' },
+              { id: 'T-Charlie', status: prev[2].status, zone: prev[2].zone }
+            ]);
+          } else {
+            setDispatchRoster([
+              { id: 'T-Alpha', status: 'Patrolling', zone: 'General' },
+              { id: 'T-Bravo', status: 'Standby', zone: 'HQ' },
+              { id: 'T-Charlie', status: 'Patrolling', zone: 'Outer Perimeter' }
+            ]);
+          }
+
+          setActiveSignage(newSignage);
+
+          setZoneStates(prev => ({
+            ...prev,
+            [targetZone]: {
+              current_capacity_pct: targetCap,
+              predicted_capacity_pct_5m: predictedCap,
+              meta_area: areaName
+            }
+          }));
+
+          setChartData(prev => {
+            const newData = [...prev, { time: timeStr, current: targetCap, predicted: predictedCap, zone: targetZone }];
+            return newData.slice(-20);
+          });
+
+          setLogs(prev => {
+            const newLogs = [...prev, { timestamp: timestamp, zone_id: targetZone, action: action, cap: Math.round(targetCap) }];
+            return newLogs.slice(-20);
+          });
+
+        } catch (err) {
+          console.error("Failed to parse websocket message", err);
         }
+      };
 
+      ws.onclose = () => {
+        setWsStatus('Disconnected');
+      };
+      ws.onerror = () => {
+        setWsStatus('Error connecting to Render');
+      };
+    } catch (e) {
+      setWsStatus('Error connecting to Render');
+    }
+
+    return () => {
+      if (ws) ws.close();
+    };
+  }, [warningThreshold, criticalThreshold, eventData]);
+
+  // Automatic Active Data Fallback Loop
+  // If WS is disconnected, run the fallback simulation
+  useEffect(() => {
+    if (!eventData) return;
+    
+    // Only run if not connected to live stream
+    if (wsStatus === 'Connected (Live Render)') return;
+
+    const fallbackInterval = setInterval(() => {
+      const nowMs = Date.now();
+      const now = new Date(nowMs).toISOString();
+      const timeStr = now.split('T')[1].substring(0, 8);
+      
+      const zones = ['A', 'B', 'C', 'D'];
+      const offsets = { 'A': 0, 'B': Math.PI / 2, 'C': Math.PI, 'D': 3 * Math.PI / 2 };
+      const targetZone = zones[Math.floor(Math.random() * zones.length)];
+      
+      const freq = (2 * Math.PI) / 60000;
+      let targetCap = 67.5 + 27.5 * Math.sin(nowMs * freq + offsets[targetZone]);
+      targetCap += (Math.random() - 0.5) * 4; // Add noise
+      targetCap = Math.max(0, Math.min(100, targetCap));
+      
+      const predictedCap = Math.min(100, targetCap + (Math.random() * 10 - 2)); 
+      const areaName = ZONE_META[targetZone];
+      
+      let action = "None";
+      let newSignage = "ENJOY THE EVENT";
+
+      if (targetCap > criticalThreshold) {
+        action = `CRITICAL: ${areaName} > ${criticalThreshold}%. Rerouting traffic.`;
+        newSignage = `WARNING: ${areaName.toUpperCase()} CONGESTED. USE ALTERNATE ROUTES.`;
+        setDispatchRoster(prev => [
+          { id: 'T-Alpha', status: 'Deployed (Code Red)', zone: areaName },
+          { id: 'T-Bravo', status: prev[1].status, zone: prev[1].zone },
+          { id: 'T-Charlie', status: prev[2].status, zone: prev[2].zone }
+        ]);
+      } else if (targetCap >= warningThreshold) {
+        action = `WARNING: ${areaName} density rising. Pre-positioning staff.`;
+        newSignage = `PLEASE PROCEED CAREFULLY NEAR ${areaName.toUpperCase()}.`;
+        setDispatchRoster(prev => [
+          { id: 'T-Alpha', status: 'Monitoring', zone: areaName },
+          { id: 'T-Bravo', status: 'Standby', zone: 'None' },
+          { id: 'T-Charlie', status: prev[2].status, zone: prev[2].zone }
+        ]);
+      } else {
+        action = `${areaName} Normal`;
+        setDispatchRoster([
+          { id: 'T-Alpha', status: 'Patrolling', zone: 'General' },
+          { id: 'T-Bravo', status: 'Standby', zone: 'HQ' },
+          { id: 'T-Charlie', status: 'Patrolling', zone: 'Outer Perimeter' }
+        ]);
+      }
+
+      setActiveAgentIndex(-1);
+      setPipelineMessages(['', '', '', '']);
+
+      setTimeout(() => { setActiveAgentIndex(0); setPipelineMessages([`Ingested ${targetZone}: ${Math.round(targetCap)}%`, '', '', '']); }, 100);
+      setTimeout(() => { setActiveAgentIndex(1); setPipelineMessages([`Ingested ${targetZone}: ${Math.round(targetCap)}%`, `Forecasting ${targetZone}: ${Math.round(predictedCap)}%`, '', '']); }, 500);
+      setTimeout(() => {
+        setActiveAgentIndex(2);
+        const decisionText = targetCap > criticalThreshold ? 'EVAC ROUTE' : (targetCap >= warningThreshold ? 'PRE-WARN' : 'NOMINAL');
+        setPipelineMessages([`Ingested...`, `Forecasting...`, `Threshold: ${decisionText}`, '']);
+      }, 900);
+      setTimeout(() => {
+        setActiveAgentIndex(3);
+        setPipelineMessages([`Ingested...`, `Forecasting...`, `Threshold pass`, `Publishing...`]);
         setActiveSignage(newSignage);
 
         setZoneStates(prev => ({
@@ -106,24 +216,18 @@ export default function Dashboard() {
         });
 
         setLogs(prev => {
-          const newLogs = [...prev, { timestamp: timestamp, zone_id: targetZone, action: action, cap: Math.round(targetCap) }];
+          const newLogs = [...prev, { timestamp: now, zone_id: targetZone, action: action, cap: Math.round(targetCap) }];
           return newLogs.slice(-20);
         });
+      }, 1300);
 
-      } catch (err) {
-        console.error("Failed to parse websocket message", err);
-      }
-    };
+    }, 1500); // Run every 1.5 seconds
 
-    ws.onclose = () => setWsStatus('Disconnected');
-    ws.onerror = () => setWsStatus('Error connecting to Render');
-
-    return () => {
-      ws.close();
-    };
-  }, [warningThreshold, criticalThreshold, eventData]);
+    return () => clearInterval(fallbackInterval);
+  }, [wsStatus, eventData, criticalThreshold, warningThreshold]);
 
   // Simulate purely localized gate telemetry for the GateMonitor visualization
+  // Runs faster (every 1s) and independently for visual flair
   useEffect(() => {
     if (!eventData || !eventData.gates) return;
     
@@ -144,7 +248,7 @@ export default function Dashboard() {
         });
         return newMetrics;
       });
-    }, 2000);
+    }, 1000);
 
     return () => clearInterval(gateInterval);
   }, [eventData]);
@@ -160,8 +264,9 @@ export default function Dashboard() {
     );
   }
 
+  // True Edge-to-Edge full screen class for the main wrapper (removed max-w-[1600px] and mx-auto)
   return (
-    <div className="h-full w-full flex flex-col overflow-hidden max-w-[1600px] mx-auto p-4 gap-4">
+    <div className="h-full w-full flex flex-col overflow-hidden p-4 gap-4">
       
       {/* Header Info - Fixed Height */}
       <div className="flex-none flex justify-between items-center">
@@ -171,12 +276,12 @@ export default function Dashboard() {
          </div>
          <div className="flex items-center space-x-2 text-[10px] sm:text-xs font-medium bg-white border border-slate-200 px-3 py-1.5 rounded-full shadow-sm">
            <div className={`w-2 h-2 rounded-full ${wsStatus.includes('Connected') ? 'bg-green-500' : 'bg-red-500'}`}></div>
-           <span className="text-slate-600">STREAM: <span className="text-slate-900 truncate max-w-[100px] sm:max-w-none block sm:inline">{wsStatus}</span></span>
+           <span className="text-slate-600">STREAM: <span className="text-slate-900 block sm:inline">{wsStatus}</span></span>
          </div>
       </div>
 
       {/* Main Grid - Remaining Height, No Scroll on Container */}
-      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-4 overflow-hidden">
+      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-4 overflow-hidden w-full">
         
         {/* Left Column (7/12) */}
         <div className="lg:col-span-7 flex flex-col gap-4 overflow-hidden h-full">
@@ -263,13 +368,14 @@ export default function Dashboard() {
                 <ShieldAlert size={12} />
                 <h3 className="text-[10px] font-bold tracking-wider">DISPATCH</h3>
               </div>
+              {/* FIXED DISPATCH UI: Added w-16 and w-24 to explicitly give room instead of truncating */}
               <div className="flex-1 space-y-1.5 overflow-y-auto pr-1">
                 {dispatchRoster.map(unit => (
-                  <div key={unit.id} className="bg-slate-50 border border-slate-100 rounded p-1.5 flex justify-between items-center">
-                    <span className="text-[10px] font-bold text-slate-700">{unit.id}</span>
-                    <div className="text-right">
-                      <div className={`text-[9px] font-semibold truncate max-w-[80px] ${unit.status.includes('Red') ? 'text-red-600' : 'text-indigo-600'}`}>{unit.status}</div>
-                      <div className="text-[8px] text-slate-500 truncate max-w-[80px]">{unit.zone}</div>
+                  <div key={unit.id} className="bg-slate-50 border border-slate-100 rounded p-1.5 flex justify-between items-center gap-2">
+                    <span className="text-[10px] font-bold text-slate-700 w-12 flex-shrink-0">{unit.id}</span>
+                    <div className="text-right flex-1 min-w-0">
+                      <div className={`text-[9px] font-semibold ${unit.status.includes('Red') ? 'text-red-600' : 'text-indigo-600'}`}>{unit.status}</div>
+                      <div className="text-[8px] text-slate-500">{unit.zone}</div>
                     </div>
                   </div>
                 ))}
