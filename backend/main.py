@@ -187,36 +187,44 @@ alert_agent = AlertAgent()
 # ----------------------------------------------------------------
 # API ROUTES & LIVE STREAM BUS
 # ----------------------------------------------------------------
+# Global Session State
+active_session = {"venue": "Pharma Expo", "location_name": "HITEX Exhibition Centre"}
+
+class SessionPayload(BaseModel):
+    venue: str
+    location_name: str
+
+@app.post("/api/session")
+async def update_session(payload: SessionPayload):
+    global active_session
+    active_session["venue"] = payload.venue
+    active_session["location_name"] = payload.location_name
+    return {"status": "success", "session": active_session}
+
 @app.get("/api/events/{city}")
 async def get_events(city: str):
-    bookmyshow_data = {
-        "hyderabad": [
-            {"name": "A.R. Rahman Live in Concert", "venue": "GMR Arena, Shamshabad", "lat": 17.2530, "lng": 78.4340, "gates": ["Gate 1 - General", "Gate 2 - VIP", "Gate 3 - Crew"]},
-            {"name": "Sunburn Arena ft. Alan Walker", "venue": "HITEX Exhibition Centre", "lat": 17.4727, "lng": 78.3725, "gates": ["Main Gate", "North Entry", "Hall 2 Annex"]}
-        ],
-        "mumbai": [
-            {"name": "Lollapalooza India 2026", "venue": "Mahalaxmi Racecourse", "lat": 18.9823, "lng": 72.8150, "gates": ["Grandstand Entry", "Members Gate", "Emergency Egress"]},
-            {"name": "Diljit Dosanjh Dil-Luminati Tour", "venue": "DY Patil Stadium", "lat": 19.0413, "lng": 73.0297, "gates": ["Sector 1 Gate", "Sector 4 VIP", "North Bleachers"]}
-        ],
-        "delhi": [
-            {"name": "Zomaland Food Festival", "venue": "Jawaharlal Nehru Stadium", "lat": 28.5828, "lng": 77.2344, "gates": ["Gate 2 - Metro Side", "Gate 5 - Lodhi Road", "VVIP Ramp"]}
+    # Dynamic generator that inherently maps to historical_telemetry.csv categories
+    city_cap = city.title().strip()
+    return {
+        "events": [
+            {
+                "id": f"pharma-{city_cap.lower()}",
+                "name": f"Pharma Pro & Pack Expo - {city_cap} Exhibition Centre",
+                "venue": "Pharma Expo",
+                "latitude": 17.4727 if city_cap.lower() == "hyderabad" else 19.0656,
+                "longitude": 78.3725 if city_cap.lower() == "hyderabad" else 72.8656,
+                "gates": ["Gate 1 - General", "Gate 2 - VIP", "Gate 3 - Crew"]
+            },
+            {
+                "id": f"harris-{city_cap.lower()}",
+                "name": f"Harris Jayaraj Live - {city_cap} Open Arena",
+                "venue": "Harris Jayaraj",
+                "latitude": 17.4255 if city_cap.lower() == "hyderabad" else 18.9823,
+                "longitude": 78.3410 if city_cap.lower() == "hyderabad" else 72.8150,
+                "gates": ["Main Gate", "North Entry", "Hall 2 Annex"]
+            }
         ]
     }
-    
-    city_lower = city.lower().strip()
-    events = bookmyshow_data.get(city_lower, [])
-    
-    parsed_events = []
-    for evt in events:
-        parsed_events.append({
-            "name": evt["name"],
-            "venue": evt["venue"],
-            "latitude": evt["lat"],
-            "longitude": evt["lng"],
-            "gates": evt["gates"]
-        })
-        
-    return {"events": parsed_events}
 
 @app.post("/api/telemetry")
 async def ingest_telemetry(payload: TelemetryPayload):
@@ -279,11 +287,11 @@ async def csv_stream_worker():
             zone = row['zone_id']
             meta = csv_meta.get(zone, csv_meta["Hall 1"])
             
-            # Construct standard payload from CSV row
+            # Construct standard payload from CSV row using global active_session
             payload = TelemetryPayload(
-                venue=meta["venue"],
+                venue=active_session["venue"],
                 zone_id=zone,  # Pass the raw CSV zone_id for the ML model directly
-                location_name=meta["loc"],
+                location_name=active_session["location_name"],
                 headcount=int(row['current_count']),
                 max_capacity=meta["max"],
                 flow_rate=float(row['flow_rate'])

@@ -110,9 +110,18 @@ export default function SelectLocation() {
     fetchLiveEvents();
   }, [city]);
 
-  const handleEnterEvent = () => {
+  const handleEnterEvent = async () => {
     const activeEvent = liveEventsData.find(e => e.id === selectedEventId);
     if (activeEvent) {
+      try {
+        await fetch('https://optiflow-backend-v0x3.onrender.com/api/session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ venue: activeEvent.venue, location_name: activeEvent.name })
+        });
+      } catch (e) {
+        console.error("Failed to update backend session", e);
+      }
       localStorage.setItem('optiflow_active_venue', JSON.stringify(activeEvent));
       navigate('/dashboard', { state: { eventData: activeEvent } });
     }
@@ -122,6 +131,7 @@ export default function SelectLocation() {
     const sandboxEvent = {
       id: 'sandbox-sim',
       name: `Simulated Venue - ${city || 'Unknown'}`,
+      venue: "Sandbox Simulation",
       date: "Active Sandbox",
       centerLat: 20.5937, 
       centerLng: 78.9629,
@@ -132,6 +142,15 @@ export default function SelectLocation() {
         { id: "West Freight", type: "freight" }
       ]
     };
+    try {
+      fetch('https://optiflow-backend-v0x3.onrender.com/api/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ venue: sandboxEvent.venue, location_name: sandboxEvent.name })
+      });
+    } catch (e) {
+      console.error("Failed to update backend session", e);
+    }
     localStorage.setItem('optiflow_active_venue', JSON.stringify(sandboxEvent));
     navigate('/dashboard', { state: { eventData: sandboxEvent } });
   };
