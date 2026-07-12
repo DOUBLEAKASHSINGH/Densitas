@@ -5,9 +5,12 @@ import 'leaflet/dist/leaflet.css';
 // Component to dynamically update map center when props change
 function ChangeView({ center, zoom }) {
   const map = useMap();
+  const centerLat = center[0];
+  const centerLng = center[1];
+  
   useEffect(() => {
-    map.setView(center, zoom);
-  }, [center, zoom, map]);
+    map.setView([centerLat, centerLng], zoom);
+  }, [centerLat, centerLng, zoom, map]);
   return null;
 }
 
