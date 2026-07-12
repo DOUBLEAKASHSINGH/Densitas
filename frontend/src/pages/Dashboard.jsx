@@ -10,7 +10,16 @@ import { ActivitySquare, MonitorPlay, ShieldAlert, ArrowLeft, Shield } from 'luc
 export default function Dashboard() {
   const routerLocation = useLocation();
   const navigate = useNavigate();
-  const eventData = routerLocation.state?.eventData;
+  
+  const getEventData = () => {
+    if (routerLocation.state?.eventData) return routerLocation.state.eventData;
+    try {
+      const stored = sessionStorage.getItem('selectedEvent');
+      return stored ? JSON.parse(stored) : null;
+    } catch { return null; }
+  };
+  
+  const eventData = getEventData();
 
   const [zoneStates, setZoneStates] = useState({});
   const [chartData, setChartData] = useState([]);
@@ -24,9 +33,9 @@ export default function Dashboard() {
   const [criticalThreshold, setCriticalThreshold] = useState(85);
   const [activeSignage, setActiveSignage] = useState("WELCOME TO THE EVENT");
   const [dispatchRoster, setDispatchRoster] = useState([
-    { id: 'Guard Unit Alpha', status: 'Standby', zone: 'None' },
-    { id: 'Crowd Control Team B', status: 'Standby', zone: 'None' },
-    { id: 'Perimeter Squad C', status: 'Patrolling', zone: 'Outer Perimeter' }
+    { id: 'Guard Unit', status: 'Standby', zone: 'None' },
+    { id: 'Crowd Control Team', status: 'Standby', zone: 'None' },
+    { id: 'Perimeter Squad', status: 'Patrolling', zone: 'Outer Perimeter' }
   ]);
   
   // Gate metrics state specifically for the GateMonitor component
@@ -55,7 +64,7 @@ export default function Dashboard() {
         try {
           const data = JSON.parse(event.data);
           
-          const zoneMap = { 'HITEX-H1': 'A', 'HITEX-H3': 'C', 'BH-OA': 'D' };
+          const zoneMap = { 'Hall 1': 'A', 'Hall 2': 'B', 'Hall 3': 'C', 'Open Arena': 'D', 'HITEX-H1': 'A', 'HITEX-H3': 'C', 'BH-OA': 'D' };
           const targetZone = zoneMap[data.zone_id] || 'A';
           
           const targetCap = data.current_capacity;

@@ -99,6 +99,7 @@ export default function SelectLocation() {
   const handleEnterEvent = () => {
     const activeEvent = events.find(e => e.id === selectedEventId);
     if (activeEvent) {
+      sessionStorage.setItem('selectedEvent', JSON.stringify(activeEvent));
       navigate('/dashboard', { state: { eventData: activeEvent } });
     }
   };
@@ -117,6 +118,7 @@ export default function SelectLocation() {
         { id: "West Freight", type: "freight" }
       ]
     };
+    sessionStorage.setItem('selectedEvent', JSON.stringify(sandboxEvent));
     navigate('/dashboard', { state: { eventData: sandboxEvent } });
   };
 
