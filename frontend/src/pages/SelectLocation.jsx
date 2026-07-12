@@ -78,23 +78,21 @@ export default function SelectLocation() {
       setSelectedEventId('');
       
       try {
-        const response = await fetch(`http://localhost:8000/api/live-events/${city}`);
+        const response = await fetch(`http://localhost:8000/api/events/${city}`);
         if (!response.ok) throw new Error('Failed to fetch from backend');
         const data = await response.json();
         
-        // Transform incoming ticketmaster payload into Dashboard format
+        // Transform incoming BookMyShow payload into Dashboard format
         const fetchedEvents = (data.events || []).map(evt => ({
           id: evt.name.replace(/\s+/g, '-').toLowerCase(),
           name: `${evt.name} - ${evt.venue}`,
           date: "Live Deployment",
           centerLat: evt.latitude,
           centerLng: evt.longitude,
-          gates: [
-            { id: "North Gate", type: "primary" },
-            { id: "East Wing", type: "secondary" },
-            { id: "South Gate", type: "primary" },
-            { id: "West Freight", type: "freight" }
-          ]
+          gates: evt.gates.map((g, i) => ({
+            id: g,
+            type: i === 0 ? "primary" : "secondary"
+          }))
         }));
         
         setLiveEventsData(fetchedEvents);

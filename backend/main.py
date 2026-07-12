@@ -187,121 +187,36 @@ alert_agent = AlertAgent()
 # ----------------------------------------------------------------
 # API ROUTES & LIVE STREAM BUS
 # ----------------------------------------------------------------
-@app.get("/api/venues")
-async def get_venues():
-    return {
-        "India": {
-            "Delhi": {
-                "New Delhi": [
-                    {
-                        "name": "Auto Expo 2026 - Pragati Maidan",
-                        "latitude": 28.6182,
-                        "longitude": 77.2410
-                    },
-                    {
-                        "name": "India International Trade Fair - Bharat Mandapam",
-                        "latitude": 28.6145,
-                        "longitude": 77.2405
-                    }
-                ]
-            },
-            "Maharashtra": {
-                "Mumbai": [
-                    {
-                        "name": "Global Fintech Fest - Jio World Convention Centre",
-                        "latitude": 19.0656,
-                        "longitude": 72.8656
-                    },
-                    {
-                        "name": "Ed Sheeran Live - Mahalaxmi Race Course",
-                        "latitude": 18.9823,
-                        "longitude": 72.8150
-                    }
-                ]
-            },
-            "Karnataka": {
-                "Bengaluru": [
-                    {
-                        "name": "Bengaluru Tech Summit - Bangalore Palace",
-                        "latitude": 12.9988,
-                        "longitude": 77.5921
-                    }
-                ]
-            },
-            "Telangana": {
-                "Hyderabad": [
-                    {
-                        "name": "Pharma Pro & Pack Expo - HITEX",
-                        "latitude": 17.4727,
-                        "longitude": 78.3725
-                    },
-                    {
-                        "name": "Harris Jayaraj Live - Boulder Hills",
-                        "latitude": 17.4255,
-                        "longitude": 78.3410
-                    }
-                ]
-            }
-        }
+@app.get("/api/events/{city}")
+async def get_events(city: str):
+    bookmyshow_data = {
+        "hyderabad": [
+            {"name": "A.R. Rahman Live in Concert", "venue": "GMR Arena, Shamshabad", "lat": 17.2530, "lng": 78.4340, "gates": ["Gate 1 - General", "Gate 2 - VIP", "Gate 3 - Crew"]},
+            {"name": "Sunburn Arena ft. Alan Walker", "venue": "HITEX Exhibition Centre", "lat": 17.4727, "lng": 78.3725, "gates": ["Main Gate", "North Entry", "Hall 2 Annex"]}
+        ],
+        "mumbai": [
+            {"name": "Lollapalooza India 2026", "venue": "Mahalaxmi Racecourse", "lat": 18.9823, "lng": 72.8150, "gates": ["Grandstand Entry", "Members Gate", "Emergency Egress"]},
+            {"name": "Diljit Dosanjh Dil-Luminati Tour", "venue": "DY Patil Stadium", "lat": 19.0413, "lng": 73.0297, "gates": ["Sector 1 Gate", "Sector 4 VIP", "North Bleachers"]}
+        ],
+        "delhi": [
+            {"name": "Zomaland Food Festival", "venue": "Jawaharlal Nehru Stadium", "lat": 28.5828, "lng": 77.2344, "gates": ["Gate 2 - Metro Side", "Gate 5 - Lodhi Road", "VVIP Ramp"]}
+        ]
     }
-
-@app.get("/api/live-events/{city}")
-async def get_live_events(city: str):
-    api_key = os.getenv("TICKETMASTER_API_KEY", "7i2xGO4jaBYRQY8iz8dEhADmDbQYGjOE")
-    url = f"https://app.ticketmaster.com/discovery/v2/events.json?apikey={api_key}&city={city}&sort=date,asc"
     
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(url, timeout=5.0)
-            
-        if response.status_code != 200:
-            return {"error": f"Ticketmaster API returned {response.status_code}", "events": []}
-            
-        data = response.json()
+    city_lower = city.lower().strip()
+    events = bookmyshow_data.get(city_lower, [])
+    
+    parsed_events = []
+    for evt in events:
+        parsed_events.append({
+            "name": evt["name"],
+            "venue": evt["venue"],
+            "latitude": evt["lat"],
+            "longitude": evt["lng"],
+            "gates": evt["gates"]
+        })
         
-        # Check if events exist
-        if "_embedded" not in data or "events" not in data["_embedded"]:
-            return {"events": []}
-            
-        raw_events = data["_embedded"]["events"]
-        parsed_events = []
-        
-        for event in raw_events[:5]:  # Top 5 events
-            try:
-                # Extract required fields safely
-                venue_data = event.get("_embedded", {}).get("venues", [{}])[0]
-                venue_name = venue_data.get("name", "Unknown Venue")
-                location = venue_data.get("location", {})
-                
-                # Check if lat/long strings exist
-                lat_str = location.get("latitude")
-                lng_str = location.get("longitude")
-                
-                if lat_str and lng_str:
-                    parsed_events.append({
-                        "name": event.get("name", "Unknown Event"),
-                        "venue": venue_name,
-                        "latitude": float(lat_str),
-                        "longitude": float(lng_str)
-                    })
-            except Exception:
-                continue
-                
-        return {"events": parsed_events}
-        
-    except Exception as e:
-        print(f"Ticketmaster integration error: {e}")
-        # Safe fallback mock dataset to prevent crash
-        return {
-            "events": [
-                {
-                    "name": f"Simulated Fallback Event - {city}",
-                    "venue": "Central Standard Arena",
-                    "latitude": 20.5937,
-                    "longitude": 78.9629
-                }
-            ]
-        }
+    return {"events": parsed_events}
 
 @app.post("/api/telemetry")
 async def ingest_telemetry(payload: TelemetryPayload):
