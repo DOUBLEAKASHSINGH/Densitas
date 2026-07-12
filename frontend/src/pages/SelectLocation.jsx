@@ -203,7 +203,7 @@ export default function SelectLocation() {
               <AlertTriangle className="text-amber-600 mr-3 shrink-0 mt-0.5" size={20} />
               <div>
                 <h4 className="text-sm font-bold text-amber-900">No active massive-scale events found in this region. Select another city.</h4>
-                <p className="text-xs text-amber-700 mt-1">Ticketmaster returned 0 active deployments in {city}. Click 'Load Sandbox Mode' to run a simulated venue instead.</p>
+                <p className="text-xs text-amber-700 mt-1">BookMyShow returned 0 active deployments in {city}. Click 'Load Sandbox Mode' to run a simulated venue instead.</p>
               </div>
             </div>
             <button 
