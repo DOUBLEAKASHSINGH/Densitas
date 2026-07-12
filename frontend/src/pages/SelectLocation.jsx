@@ -2,72 +2,118 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Calendar, ArrowRight, AlertTriangle, Building, Globe, TestTube2, RefreshCw, Loader2 } from 'lucide-react';
 
+const INDIA_LOCATION_MATRIX = {
+  "Andhra Pradesh": ["Visakhapatnam", "Vijayawada", "Guntur", "Nellore"],
+  "Arunachal Pradesh": ["Itanagar", "Tawang"],
+  "Assam": ["Guwahati", "Silchar", "Dibrugarh"],
+  "Bihar": ["Patna", "Gaya", "Bhagalpur"],
+  "Chhattisgarh": ["Raipur", "Bhilai", "Bilaspur"],
+  "Goa": ["Panaji", "Margao", "Vasco da Gama"],
+  "Gujarat": ["Ahmedabad", "Surat", "Vadodara", "Rajkot"],
+  "Haryana": ["Faridabad", "Gurugram", "Panipat", "Ambala"],
+  "Himachal Pradesh": ["Shimla", "Manali", "Dharamshala"],
+  "Jharkhand": ["Ranchi", "Jamshedpur", "Dhanbad"],
+  "Karnataka": ["Bengaluru", "Mysuru", "Mangaluru", "Hubballi"],
+  "Kerala": ["Thiruvananthapuram", "Kochi", "Kozhikode"],
+  "Madhya Pradesh": ["Bhopal", "Indore", "Gwalior", "Jabalpur"],
+  "Maharashtra": ["Mumbai", "Pune", "Nagpur", "Nashik", "Aurangabad"],
+  "Manipur": ["Imphal"],
+  "Meghalaya": ["Shillong"],
+  "Mizoram": ["Aizawl"],
+  "Nagaland": ["Kohima", "Dimapur"],
+  "Odisha": ["Bhubaneswar", "Cuttack", "Rourkela"],
+  "Punjab": ["Ludhiana", "Amritsar", "Jalandhar", "Patiala"],
+  "Rajasthan": ["Jaipur", "Jodhpur", "Udaipur", "Kota"],
+  "Sikkim": ["Gangtok"],
+  "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai", "Tiruchirappalli"],
+  "Telangana": ["Hyderabad", "Warangal", "Nizamabad", "Khammam"],
+  "Tripura": ["Agartala"],
+  "Uttar Pradesh": ["Lucknow", "Kanpur", "Ghaziabad", "Agra", "Varanasi"],
+  "Uttarakhand": ["Dehradun", "Haridwar", "Roorkee"],
+  "West Bengal": ["Kolkata", "Howrah", "Darjeeling", "Siliguri"],
+  // Union Territories
+  "Andaman and Nicobar Islands": ["Port Blair"],
+  "Chandigarh": ["Chandigarh"],
+  "Dadra and Nagar Haveli and Daman and Diu": ["Daman", "Diu", "Silvassa"],
+  "Delhi": ["New Delhi"],
+  "Jammu and Kashmir": ["Srinagar", "Jammu"],
+  "Ladakh": ["Leh", "Kargil"],
+  "Lakshadweep": ["Kavaratti"],
+  "Puducherry": ["Puducherry"]
+};
+
 export default function SelectLocation() {
   const navigate = useNavigate();
   
-  const [venueData, setVenueData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isError, setIsError] = useState(false);
-
   const [country, setCountry] = useState('');
   const [stateName, setStateName] = useState('');
   const [city, setCity] = useState('');
+  
+  const [liveEventsData, setLiveEventsData] = useState([]);
+  const [isLoadingEvents, setIsLoadingEvents] = useState(false);
+  const [isError, setIsError] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState('');
 
-  const fetchVenues = async () => {
-    setIsLoading(true);
-    setIsError(false);
-    try {
-      const response = await fetch('http://localhost:8000/api/venues');
-      if (!response.ok) throw new Error('Network response was not ok');
-      const data = await response.json();
-      setVenueData(data);
-    } catch (error) {
-      console.error("Failed to fetch venues:", error);
-      setIsError(true);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchVenues();
-  }, []);
-
-  // Dropdowns based on fetched hierarchical data
-  const countries = venueData ? Object.keys(venueData) : [];
-  const states = (venueData && country) ? Object.keys(venueData[country] || {}) : [];
-  const cities = (venueData && country && stateName) ? Object.keys(venueData[country][stateName] || {}) : [];
-  
-  // Transform API events into the format expected by Dashboard
-  const rawEvents = (venueData && country && stateName && city) ? (venueData[country][stateName][city] || []) : [];
-  const events = rawEvents.map(evt => ({
-    id: evt.name.replace(/\s+/g, '-').toLowerCase(),
-    name: evt.name,
-    date: "Active Deployment",
-    centerLat: evt.latitude,
-    centerLng: evt.longitude,
-    gates: [
-      { id: "North Gate", type: "primary" },
-      { id: "East Wing", type: "secondary" },
-      { id: "South Gate", type: "primary" },
-      { id: "West Freight", type: "freight" }
-    ]
-  }));
+  // Dropdowns based on local state
+  const countries = ["India"];
+  const states = country === "India" ? Object.keys(INDIA_LOCATION_MATRIX) : [];
+  const cities = stateName ? (INDIA_LOCATION_MATRIX[stateName] || []) : [];
 
   // Cascading resets
-  useEffect(() => { setStateName(''); setCity(''); setSelectedEventId(''); }, [country]);
-  useEffect(() => { setCity(''); setSelectedEventId(''); }, [stateName]);
-  useEffect(() => { 
-    if (events.length > 0) {
-      setSelectedEventId(events[0].id);
-    } else {
+  useEffect(() => { setStateName(''); setCity(''); }, [country]);
+  useEffect(() => { setCity(''); }, [stateName]);
+
+  // Fetch live events when city changes
+  useEffect(() => {
+    const fetchLiveEvents = async () => {
+      if (!city) {
+        setLiveEventsData([]);
+        setSelectedEventId('');
+        return;
+      }
+      
+      setIsLoadingEvents(true);
+      setIsError(false);
+      setLiveEventsData([]);
       setSelectedEventId('');
-    }
-  }, [city]); 
+      
+      try {
+        const response = await fetch(`http://localhost:8000/api/live-events/${city}`);
+        if (!response.ok) throw new Error('Failed to fetch from backend');
+        const data = await response.json();
+        
+        // Transform incoming ticketmaster payload into Dashboard format
+        const fetchedEvents = (data.events || []).map(evt => ({
+          id: evt.name.replace(/\s+/g, '-').toLowerCase(),
+          name: `${evt.name} - ${evt.venue}`,
+          date: "Live Deployment",
+          centerLat: evt.latitude,
+          centerLng: evt.longitude,
+          gates: [
+            { id: "North Gate", type: "primary" },
+            { id: "East Wing", type: "secondary" },
+            { id: "South Gate", type: "primary" },
+            { id: "West Freight", type: "freight" }
+          ]
+        }));
+        
+        setLiveEventsData(fetchedEvents);
+        if (fetchedEvents.length > 0) {
+          setSelectedEventId(fetchedEvents[0].id);
+        }
+      } catch (error) {
+        console.error("Live fetch error:", error);
+        setIsError(true);
+      } finally {
+        setIsLoadingEvents(false);
+      }
+    };
+
+    fetchLiveEvents();
+  }, [city]);
 
   const handleEnterEvent = () => {
-    const activeEvent = events.find(e => e.id === selectedEventId);
+    const activeEvent = liveEventsData.find(e => e.id === selectedEventId);
     if (activeEvent) {
       localStorage.setItem('optiflow_active_venue', JSON.stringify(activeEvent));
       navigate('/dashboard', { state: { eventData: activeEvent } });
@@ -77,7 +123,7 @@ export default function SelectLocation() {
   const handleSandboxMode = () => {
     const sandboxEvent = {
       id: 'sandbox-sim',
-      name: `Simulated Venue - ${city}`,
+      name: `Simulated Venue - ${city || 'Unknown'}`,
       date: "Active Sandbox",
       centerLat: 20.5937, 
       centerLng: 78.9629,
@@ -91,36 +137,6 @@ export default function SelectLocation() {
     localStorage.setItem('optiflow_active_venue', JSON.stringify(sandboxEvent));
     navigate('/dashboard', { state: { eventData: sandboxEvent } });
   };
-
-  if (isLoading) {
-    return (
-      <div className="h-full w-full bg-slate-50 flex flex-col items-center justify-center p-4">
-        <div className="flex items-center space-x-3 text-indigo-600 mb-4">
-          <Loader2 className="animate-spin" size={32} />
-          <h2 className="text-xl font-semibold animate-pulse">Establishing secure connection to venue database...</h2>
-        </div>
-        <p className="text-slate-500 text-sm">Synchronizing live geographic telemetry nodes.</p>
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="h-full w-full bg-slate-50 flex flex-col items-center justify-center p-4">
-        <div className="bg-white p-8 rounded-xl shadow-sm border border-red-200 max-w-md text-center">
-          <AlertTriangle className="mx-auto text-red-500 mb-4" size={48} />
-          <h2 className="text-xl font-bold text-slate-900 mb-2">Connection Failed</h2>
-          <p className="text-slate-500 mb-6 text-sm">Unable to reach the OptiFlow backend API. Ensure the server is running on port 8000.</p>
-          <button 
-            onClick={fetchVenues}
-            className="w-full flex justify-center items-center py-3 px-4 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-semibold shadow-sm"
-          >
-            <RefreshCw size={18} className="mr-2" /> Retry Connection
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="h-full w-full bg-slate-50 overflow-y-auto p-4 sm:p-8 flex items-center justify-center">
@@ -178,13 +194,18 @@ export default function SelectLocation() {
         </div>
 
         {/* Dynamic Event Selection or Warning Banner */}
-        {city && events.length === 0 ? (
+        {isLoadingEvents ? (
+          <div className="mb-8 p-5 bg-indigo-50 border border-indigo-200 rounded-xl flex items-center space-x-3 text-indigo-700">
+            <Loader2 className="animate-spin" size={24} />
+            <h4 className="text-sm font-bold animate-pulse">Querying live venue databases...</h4>
+          </div>
+        ) : city && (liveEventsData.length === 0 || isError) ? (
           <div className="mb-8 p-5 bg-amber-50 border border-amber-200 rounded-xl">
             <div className="flex items-start mb-4">
               <AlertTriangle className="text-amber-600 mr-3 shrink-0 mt-0.5" size={20} />
               <div>
-                <h4 className="text-sm font-bold text-amber-900">No active event deployments in this city.</h4>
-                <p className="text-xs text-amber-700 mt-1">There are no major registered events currently broadcasting telemetry from {city}. Click 'Load Sandbox Mode' to run a simulated venue.</p>
+                <h4 className="text-sm font-bold text-amber-900">No active massive-scale events found in this region. Select another city.</h4>
+                <p className="text-xs text-amber-700 mt-1">Ticketmaster returned 0 active deployments in {city}. Click 'Load Sandbox Mode' to run a simulated venue instead.</p>
               </div>
             </div>
             <button 
@@ -194,7 +215,7 @@ export default function SelectLocation() {
               <TestTube2 size={16} className="mr-2" /> Load Sandbox Mode
             </button>
           </div>
-        ) : (
+        ) : city ? (
           <div className="mb-8">
             <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center">
               <Calendar size={16} className="mr-2 text-indigo-500" /> Venue / Event
@@ -202,21 +223,17 @@ export default function SelectLocation() {
             <select 
               value={selectedEventId} 
               onChange={(e) => setSelectedEventId(e.target.value)}
-              disabled={events.length === 0}
+              disabled={liveEventsData.length === 0}
               className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors disabled:bg-slate-100 disabled:text-slate-400"
             >
-              {events.length > 0 ? (
-                events.map((evt) => (
-                  <option key={evt.id} value={evt.id}>{evt.name} ({evt.date})</option>
-                ))
-              ) : (
-                <option value="">Awaiting valid city selection...</option>
-              )}
+              {liveEventsData.map((evt) => (
+                <option key={evt.id} value={evt.id}>{evt.name} ({evt.date})</option>
+              ))}
             </select>
           </div>
-        )}
+        ) : null}
 
-        {events.length > 0 && (
+        {liveEventsData.length > 0 && (
           <button 
             onClick={handleEnterEvent}
             disabled={!selectedEventId}
