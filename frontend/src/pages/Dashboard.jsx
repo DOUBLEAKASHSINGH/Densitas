@@ -5,7 +5,7 @@ import OccupancyChart from '../components/OccupancyChart';
 import AgentTerminal from '../components/AgentTerminal';
 import AgentPipeline from '../components/AgentPipeline';
 import GateMonitor from '../components/GateMonitor';
-import { ActivitySquare, MonitorPlay, ShieldAlert, ArrowLeft } from 'lucide-react';
+import { ActivitySquare, MonitorPlay, ShieldAlert, ArrowLeft, Shield } from 'lucide-react';
 
 export default function Dashboard() {
   const routerLocation = useLocation();
@@ -24,9 +24,9 @@ export default function Dashboard() {
   const [criticalThreshold, setCriticalThreshold] = useState(85);
   const [activeSignage, setActiveSignage] = useState("WELCOME TO THE EVENT");
   const [dispatchRoster, setDispatchRoster] = useState([
-    { id: 'T-Alpha', status: 'Standby', zone: 'None' },
-    { id: 'T-Bravo', status: 'Standby', zone: 'None' },
-    { id: 'T-Charlie', status: 'Patrolling', zone: 'Outer Perimeter' }
+    { id: 'Guard Unit Alpha', status: 'Standby', zone: 'None' },
+    { id: 'Crowd Control Team B', status: 'Standby', zone: 'None' },
+    { id: 'Perimeter Squad C', status: 'Patrolling', zone: 'Outer Perimeter' }
   ]);
   
   // Gate metrics state specifically for the GateMonitor component
@@ -73,22 +73,22 @@ export default function Dashboard() {
           if (targetCap > criticalThreshold || action.includes('CRITICAL')) {
             newSignage = `WARNING: ${areaName.toUpperCase()} CONGESTED. USE ALTERNATE ROUTES.`;
             setDispatchRoster(prev => [
-              { id: 'T-Alpha', status: 'Deployed (Code Red)', zone: areaName },
-              { id: 'T-Bravo', status: prev[1].status, zone: prev[1].zone },
-              { id: 'T-Charlie', status: prev[2].status, zone: prev[2].zone }
+              { id: 'Guard Unit Alpha', status: 'Deployed', zone: areaName },
+              { id: 'Crowd Control Team B', status: prev[1].status, zone: prev[1].zone },
+              { id: 'Perimeter Squad C', status: prev[2].status, zone: prev[2].zone }
             ]);
           } else if (targetCap >= warningThreshold || action.includes('WARNING')) {
             newSignage = `PLEASE PROCEED CAREFULLY NEAR ${areaName.toUpperCase()}.`;
             setDispatchRoster(prev => [
-              { id: 'T-Alpha', status: 'Monitoring', zone: areaName },
-              { id: 'T-Bravo', status: 'Standby', zone: 'None' },
-              { id: 'T-Charlie', status: prev[2].status, zone: prev[2].zone }
+              { id: 'Guard Unit Alpha', status: 'Monitoring', zone: areaName },
+              { id: 'Crowd Control Team B', status: 'Standby', zone: 'None' },
+              { id: 'Perimeter Squad C', status: prev[2].status, zone: prev[2].zone }
             ]);
           } else {
             setDispatchRoster([
-              { id: 'T-Alpha', status: 'Patrolling', zone: 'General' },
-              { id: 'T-Bravo', status: 'Standby', zone: 'HQ' },
-              { id: 'T-Charlie', status: 'Patrolling', zone: 'Outer Perimeter' }
+              { id: 'Guard Unit Alpha', status: 'Standby', zone: 'None' },
+              { id: 'Crowd Control Team B', status: 'Standby', zone: 'None' },
+              { id: 'Perimeter Squad C', status: 'Patrolling', zone: 'Outer Perimeter' }
             ]);
           }
 
@@ -138,8 +138,8 @@ export default function Dashboard() {
   useEffect(() => {
     if (!eventData) return;
     
-    // Only run if not connected to live stream
-    if (wsStatus === 'Connected (Local Live)') return;
+    // Only run if the socket explicitly failed or closed
+    if (wsStatus !== 'Simulated') return;
 
     const fallbackInterval = setInterval(() => {
       const nowMs = Date.now();
@@ -165,24 +165,24 @@ export default function Dashboard() {
         action = `CRITICAL: ${areaName} > ${criticalThreshold}%. Rerouting traffic.`;
         newSignage = `WARNING: ${areaName.toUpperCase()} CONGESTED. USE ALTERNATE ROUTES.`;
         setDispatchRoster(prev => [
-          { id: 'T-Alpha', status: 'Deployed (Code Red)', zone: areaName },
-          { id: 'T-Bravo', status: prev[1].status, zone: prev[1].zone },
-          { id: 'T-Charlie', status: prev[2].status, zone: prev[2].zone }
+          { id: 'Guard Unit Alpha', status: 'Deployed', zone: areaName },
+          { id: 'Crowd Control Team B', status: prev[1].status, zone: prev[1].zone },
+          { id: 'Perimeter Squad C', status: prev[2].status, zone: prev[2].zone }
         ]);
       } else if (targetCap >= warningThreshold) {
         action = `WARNING: ${areaName} density rising. Pre-positioning staff.`;
         newSignage = `PLEASE PROCEED CAREFULLY NEAR ${areaName.toUpperCase()}.`;
         setDispatchRoster(prev => [
-          { id: 'T-Alpha', status: 'Monitoring', zone: areaName },
-          { id: 'T-Bravo', status: 'Standby', zone: 'None' },
-          { id: 'T-Charlie', status: prev[2].status, zone: prev[2].zone }
+          { id: 'Guard Unit Alpha', status: 'Monitoring', zone: areaName },
+          { id: 'Crowd Control Team B', status: 'Standby', zone: 'None' },
+          { id: 'Perimeter Squad C', status: prev[2].status, zone: prev[2].zone }
         ]);
       } else {
         action = `${areaName} Normal`;
         setDispatchRoster([
-          { id: 'T-Alpha', status: 'Patrolling', zone: 'General' },
-          { id: 'T-Bravo', status: 'Standby', zone: 'HQ' },
-          { id: 'T-Charlie', status: 'Patrolling', zone: 'Outer Perimeter' }
+          { id: 'Guard Unit Alpha', status: 'Standby', zone: 'None' },
+          { id: 'Crowd Control Team B', status: 'Standby', zone: 'None' },
+          { id: 'Perimeter Squad C', status: 'Patrolling', zone: 'Outer Perimeter' }
         ]);
       }
 
@@ -221,7 +221,7 @@ export default function Dashboard() {
         });
       }, 1300);
 
-    }, 1500); // Run every 1.5 seconds
+    }, 3500); // Run every 3.5 seconds
 
     return () => clearInterval(fallbackInterval);
   }, [wsStatus, eventData, criticalThreshold, warningThreshold]);
@@ -356,8 +356,9 @@ export default function Dashboard() {
                 <MonitorPlay size={12} />
                 <h3 className="text-[10px] font-bold tracking-wider">SIGNAGE</h3>
               </div>
-              <div className="flex-1 bg-slate-900 rounded-lg p-2 flex items-center justify-center overflow-hidden">
-                <p className="text-amber-400 font-mono text-center font-bold text-[10px] uppercase leading-tight animate-pulse">
+              <div className="flex-1 border-4 border-slate-900 bg-black rounded p-2 flex items-center justify-center overflow-hidden relative">
+                <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, #ffffff 1px, transparent 1px)', backgroundSize: '4px 4px' }}></div>
+                <p className={`text-amber-500 font-mono text-center font-bold text-xs uppercase tracking-widest leading-tight z-10 ${(activeSignage.includes('WARNING') || activeSignage.includes('ALERT')) ? 'animate-pulse' : ''}`}>
                   {activeSignage}
                 </p>
               </div>
@@ -365,17 +366,17 @@ export default function Dashboard() {
 
             <div className="flex-1 bg-white border border-slate-200 rounded-xl shadow-sm p-3 flex flex-col min-w-0">
               <div className="flex items-center space-x-2 mb-2 text-slate-500">
-                <ShieldAlert size={12} />
-                <h3 className="text-[10px] font-bold tracking-wider">DISPATCH</h3>
+                <Shield size={12} />
+                <h3 className="text-[10px] font-bold tracking-wider">SECURITY PERSONNEL DISPATCH</h3>
               </div>
-              {/* FIXED DISPATCH UI: Added w-16 and w-24 to explicitly give room instead of truncating */}
               <div className="flex-1 space-y-1.5 overflow-y-auto pr-1">
                 {dispatchRoster.map(unit => (
                   <div key={unit.id} className="bg-slate-50 border border-slate-100 rounded p-1.5 flex justify-between items-center gap-2">
-                    <span className="text-[10px] font-bold text-slate-700 w-12 flex-shrink-0">{unit.id}</span>
-                    <div className="text-right flex-1 min-w-0">
-                      <div className={`text-[9px] font-semibold ${unit.status.includes('Red') ? 'text-red-600' : 'text-indigo-600'}`}>{unit.status}</div>
-                      <div className="text-[8px] text-slate-500">{unit.zone}</div>
+                    <span className="text-[10px] font-bold text-slate-700 truncate max-w-[120px] flex-shrink-0">{unit.id}</span>
+                    <div className="text-right flex-1 min-w-0 flex flex-col items-end">
+                      <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${unit.status.includes('Deployed') ? 'bg-indigo-100 text-indigo-700 border border-indigo-200' : 'bg-slate-200 text-slate-600 border border-slate-300'}`}>
+                        {unit.status.includes('Deployed') ? `Deployed to ${unit.zone}` : unit.status}
+                      </span>
                     </div>
                   </div>
                 ))}
