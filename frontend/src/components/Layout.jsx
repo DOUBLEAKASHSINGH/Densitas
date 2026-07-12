@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { Activity, User, LogOut, Trash2, Settings, Bell, X } from 'lucide-react';
+import { Activity, User, LogOut, Trash2, Settings, Bell, X, MapPin } from 'lucide-react';
 import { auth } from '../firebase';
 import { signOut, deleteUser } from 'firebase/auth';
 
@@ -9,6 +9,29 @@ export default function Layout() {
   const location = useLocation();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const stored = localStorage.getItem('optiflow_user_profile');
+      if (stored) return JSON.parse(stored);
+    } catch (e) {}
+    return { name: auth.currentUser?.displayName || 'Admin User', email: auth.currentUser?.email || 'admin@optiflow.com' };
+  });
+
+  const [editName, setEditName] = useState(currentUser.name);
+
+  useEffect(() => {
+    if (isProfileModalOpen) {
+      setEditName(currentUser.name);
+    }
+  }, [isProfileModalOpen, currentUser.name]);
+
+  const handleSaveProfile = () => {
+    const updated = { ...currentUser, name: editName };
+    setCurrentUser(updated);
+    localStorage.setItem('optiflow_user_profile', JSON.stringify(updated));
+    setIsProfileModalOpen(false);
+  };
 
   // Don't show header/footer on Auth Wall
   const isAuthPage = location.pathname === '/' || location.pathname === '/auth';
@@ -113,10 +136,10 @@ export default function Layout() {
                 {/* User Info Header */}
                 <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
                   <p className="text-sm font-bold text-slate-800">
-                     {auth.currentUser?.displayName || 'Admin User'}
+                     {currentUser.name}
                   </p>
                   <p className="text-xs text-slate-500 font-medium">
-                     {auth.currentUser?.email || 'admin@optiflow.com'}
+                     {currentUser.email}
                   </p>
                   <div className="mt-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-indigo-100 text-indigo-700">
                     System Organiser
@@ -134,6 +157,17 @@ export default function Layout() {
                   >
                     <Settings size={16} />
                     Profile Settings
+                  </button>
+
+                  <button 
+                    onClick={() => {
+                      setIsProfileOpen(false);
+                      navigate('/select-location');
+                    }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 rounded-md transition-colors"
+                  >
+                    <MapPin size={16} />
+                    Change Location
                   </button>
 
                   <button 
@@ -236,11 +270,16 @@ export default function Layout() {
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1">Full Name</label>
-                <input type="text" defaultValue={auth.currentUser?.displayName || 'Admin User'} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors" />
+                <input 
+                  type="text" 
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors" 
+                />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1">Email Address</label>
-                <input type="email" disabled defaultValue={auth.currentUser?.email || 'admin@optiflow.com'} className="w-full bg-slate-100 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-500 cursor-not-allowed" />
+                <input type="email" disabled value={currentUser.email} className="w-full bg-slate-100 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-500 cursor-not-allowed" />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-2">Notification Preferences</label>
@@ -259,7 +298,7 @@ export default function Layout() {
               <button onClick={() => setIsProfileModalOpen(false)} className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-200 bg-slate-100 rounded-lg transition-colors">
                 Cancel
               </button>
-              <button onClick={() => setIsProfileModalOpen(false)} className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm transition-colors">
+              <button onClick={handleSaveProfile} className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm transition-colors">
                 Save Preferences
               </button>
             </div>

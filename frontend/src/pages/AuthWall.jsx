@@ -25,8 +25,12 @@ export default function AuthWall() {
     try {
       if (isSignUp) {
         await createUserWithEmailAndPassword(auth, email, password);
+        localStorage.setItem('optiflow_user_profile', JSON.stringify({ name, email }));
       } else {
         await signInWithEmailAndPassword(auth, email, password);
+        if (!localStorage.getItem('optiflow_user_profile')) {
+           localStorage.setItem('optiflow_user_profile', JSON.stringify({ name: 'Admin User', email }));
+        }
       }
       
       // On success, navigate to dashboard if returning, or onboarding if new
