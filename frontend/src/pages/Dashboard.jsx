@@ -286,7 +286,7 @@ export default function Dashboard() {
 
   // True Edge-to-Edge full screen class for the main wrapper (removed max-w-[1600px] and mx-auto)
   return (
-    <div className="h-full w-full flex flex-col overflow-hidden p-4 gap-4">
+    <div className="min-h-screen w-full flex flex-col p-4 gap-4">
       
       {/* Header Info - Fixed Height */}
       <div className="flex-none flex justify-between items-center">
@@ -301,10 +301,10 @@ export default function Dashboard() {
       </div>
 
       {/* Main Grid - Remaining Height, No Scroll on Container */}
-      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-4 overflow-hidden w-full">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 w-full">
         
         {/* Left Column (7/12) */}
-        <div className="lg:col-span-7 flex flex-col gap-4 overflow-hidden h-full">
+        <div className="lg:col-span-7 flex flex-col gap-4 h-full">
           
           {/* Map (50% of column height) */}
           <div className="flex-1 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden p-1 min-h-0 relative z-0">
@@ -344,7 +344,7 @@ export default function Dashboard() {
         </div>
 
         {/* Right Column (5/12) */}
-        <div className="lg:col-span-5 flex flex-col gap-4 overflow-hidden h-full">
+        <div className="lg:col-span-5 flex flex-col gap-4 h-full">
           
           {/* Agent Control Pipeline (Fixed Height) */}
           <div className="flex-none bg-white border border-slate-200 rounded-xl shadow-sm p-4">
@@ -405,7 +405,7 @@ export default function Dashboard() {
           </div>
 
           {/* Terminal (Fills remaining height) */}
-          <div className="flex-1 min-h-[150px] bg-slate-900 rounded-xl shadow-sm overflow-hidden flex flex-col">
+          <div className="flex-1 min-h-[250px] bg-slate-900 rounded-xl shadow-sm overflow-hidden flex flex-col">
              <AgentTerminal logs={logs} />
           </div>
 
