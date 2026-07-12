@@ -23,7 +23,7 @@ This report details the design, architecture, and implementation of OptiFlow, a 
 \end{abstract}
 
 \section{Introduction}
-Managing extreme crowd density requires transitioning from reactive surveillance to proactive spatial intelligence. OptiFlow was engineered to bridge the gap between edge-computed hardware telemetry and high-level operational decision-making. Utilizing a centralized command dashboard, predictive machine learning regression models, and strict deterministic agent constraints, the platform alerts security personnel to localized bottlenecks and orchestrates automated dispatch instructions before congestion reaches critical thresholds.
+Managing extreme crowd density requires transitioning from reactive surveillance to proactive spatial intelligence. The core problem addressed by OptiFlow is the dangerous delay in human response times during massive live events, which historically leads to life-threatening crowd crushes and severe operational bottlenecks. Rather than relying on standard, reactive CCTV monitoring (the status quo), OptiFlow introduces an original angle: a fully autonomous, predictive multi-agent pipeline. Solving this problem has massive relevance for the live-event and transit industry, directly protecting human lives while optimizing commercial throughput. To ensure feasibility within rapid development cycles, the system focuses on a highly scalable, single-venue archetype proof-of-concept powered by robust synthetic data generation. Utilizing a centralized command dashboard, predictive machine learning regression models, and strict deterministic agent constraints, the platform alerts security personnel to localized bottlenecks and orchestrates automated dispatch instructions before congestion reaches critical thresholds.
 
 \section{System Architecture}
 The OptiFlow platform is constructed on a multi-tiered architecture designed for extreme low-latency processing and zero-hallucination reliability.
@@ -95,8 +95,26 @@ The backend orchestration service is built on Python 3.11 using the FastAPI fram
     \item \textbf{Connection Manager:} Maintains an active, persistent WebSocket manager that broadcasts serialized telemetry to all active React clients via the \texttt{wss://} protocol at sub-100ms latencies.
 \end{itemize}
 
+\section{Database Design and Data Handling Strategy}
+OptiFlow employs a hybrid, two-tiered data storage strategy explicitly tailored for the demands of high-frequency IoT environments.
+
+\subsection{Database Architecture and Selection}
+To maintain low latency and structural integrity, the system differentiates between static configuration and live telemetry:
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Relational Static Data:} Standard PostgreSQL tables manage static venue metadata, zone boundaries, and user authentication constraints.
+    \item \textbf{Time-Series Live Data:} TimescaleDB is strictly utilized for the high-frequency telemetry stream. By utilizing hyper-tables, TimescaleDB automatically partitions incoming data by time, offering vastly superior write performance and query optimization for the 60-second rolling windows required by our ML models compared to a standard NoSQL or relational structure.
+    \item \textbf{Data Integrity:} Strict validation schemas enforce non-negative constraints on flow rates and capacity boundaries at the database level, ensuring anomalous edge packets do not corrupt the ML inference pipeline.
+\end{itemize}
+
+\subsection{Data Sourcing and Preprocessing}
+Given the sensitive and proprietary nature of physical security feeds, raw data is generated via a robust, physics-based synthetic simulator rather than relying on disparate public datasets.
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Data Creation:} The generated dataset (50,000 rows) perfectly mimics real-world constraints, injecting natural sine-wave traffic fluctuations corresponding to event entry times, and randomly seeding sudden, high-velocity surge anomalies (e.g., concert conclusions).
+    \item \textbf{Cleaning and Preprocessing:} Prior to model ingestion, the data undergoes strict preprocessing. Missing edge payloads are gracefully interpolated, outliers exceeding physical architectural limits are capped, and all continuous variables (velocity, flow rate) are normalized using \texttt{StandardScaler}. This ensures the data is perfectly fit for accurate predictive modeling.
+\end{itemize}
+
 \section{The Multi-Agent Orchestration Pipeline}
-When a telemetry packet arrives at the backend, it passes through a synchronous, deterministic pipeline to extract actionable intelligence without the unreliability of generative AI.
+When a telemetry packet arrives at the backend, it passes through a synchronous, deterministic pipeline. This modular agentic architecture explicitly separates concerns (e.g., Evaluation vs. Action) and allows individual components to be easily swapped or scaled without systemic rewrites. Most importantly, it completely avoids generative AI hallucinations by utilizing strict, mathematically bounded agents for safety-critical handoffs.
 
 \begin{enumerate}[leftmargin=*]
     \item \textbf{DensityAgent:} Ingests raw footfall arrays and calculates absolute volumetric saturation percentages against predefined maximum architectural capacities of the localized zone.
@@ -116,22 +134,31 @@ A robust, physics-based dataset of 50,000 rows was generated. The synthetic data
     \item \textbf{Inference:} The trained model (\texttt{xgboost\_model.pkl}) is loaded globally into the FastAPI server via \texttt{joblib}, eliminating disk I/O bottlenecks during active request cycles.
 \end{itemize}
 
-\section{Frontend Dashboard Architecture}
-The command center is a custom React SPA styled exclusively with Tailwind CSS, utilizing a premium SaaS design system with \texttt{slate} and \texttt{indigo} palettes.
+\section{Frontend, Backend, and API Integration}
+The command center is a custom React SPA styled exclusively with Tailwind CSS, utilizing a premium SaaS design system with \texttt{slate} and \texttt{indigo} palettes. State persistence is robustly managed via \texttt{localStorage} and Firebase Authentication.
 
-\subsection{Core Application Features}
+\subsection{API Design and System Integration}
+OptiFlow utilizes a strict separation of communication protocols:
 \begin{itemize}[leftmargin=*]
-    \item \textbf{State Persistence \& Authentication:} An initial Auth Wall is secured by the Firebase Authentication SDK. Upon logging in, location state and dynamic user profile data are robustly managed via \texttt{localStorage} to persist the session seamlessly across browser reloads.
-    \item \textbf{Edge-to-Edge Layout:} The application dynamically handles global scrolling constraints to maximize screen real-estate for the dashboard while retaining vertical scrolling for documentation and settings modals.
-    \item \textbf{Dynamic Spatial Mapping:} Employs \texttt{react-leaflet} and CartoDB Positron tiles to dynamically render pulsating routes and \texttt{CircleMarkers} scaled by real-time density metrics.
-    \item \textbf{Autonomous Fallback Safeguard:} A critical \texttt{useEffect} interval ensures that if the WebSocket connection severs, the UI degrades gracefully by falling back to a local sine-wave simulation loop rather than crashing, maintaining a "Simulated" state for continuous operation.
+    \item \textbf{RESTful Ingestion:} The \texttt{POST /api/telemetry} endpoint adheres to standard REST practices, handling incoming JSON payloads with appropriate HTTP status codes and rigorous Pydantic error validation. The API is fully self-documenting via FastAPI's native Swagger/OpenAPI integration.
+    \item \textbf{Live WebSocket Broadcast:} Frontend-backend communication operates over a persistent \texttt{wss://} WebSocket connection. This ensures smooth, sub-100ms latency integration, pushing finalized state updates instantly to the client without the overhead of HTTP polling.
+\end{itemize}
+
+\subsection{Live Dashboard and Visualization}
+The dashboard is engineered for high usability, ensuring non-technical security personnel can interpret predictive threats at a glance.
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Real-Time Visualization:} Employs \texttt{react-leaflet} and CartoDB Positron tiles to dynamically render venue maps. Metrics update in real-time based on the WebSocket broadcast cycle.
+    \item \textbf{Predictive Clarity:} Model predictions are clearly visualized alongside current metrics, utilizing color-coded thresholds (Warning, Critical) and explicitly displaying the ML model's ±\% confidence interval to maintain analytical transparency.
+    \item \textbf{Multi-Metric Handling:} The UI employs clean, isolated component grids to display flow rates, capacity percentages, and dispatch logs simultaneously without overwhelming the operator.
+    \item \textbf{Autonomous Fallback Safeguard:} A critical \texttt{useEffect} interval ensures that if the connection severs, the UI degrades gracefully, maintaining a "Simulated" state for continuous operation.
 \end{itemize}
 
 \section{Deployment and Infrastructure}
-OptiFlow is deployed using a split Infrastructure-as-Code (IaC) pipeline:
+OptiFlow is deployed using a stable, split Infrastructure-as-Code (IaC) pipeline ensuring the project is globally accessible and crash-resilient under active demo conditions:
 \begin{itemize}[leftmargin=*]
-    \item \textbf{Backend on Render:} The FastAPI server is hosted on Render.com, configured explicitly via a \texttt{render.yaml} Blueprint. It strictly installs dependencies via \texttt{requirements.txt} without caching bloat, exposing secure WebSocket termination points.
-    \item \textbf{Frontend on Vercel:} The React application utilizes Vercel's edge network, triggered via GitHub push-hooks. React Router DOM paths are handled via native server rewrites to prevent sub-path 404 errors.
+    \item \textbf{Backend on Render:} The FastAPI server is hosted on Render.com. It strictly installs dependencies via \texttt{requirements.txt} without caching bloat, exposing secure WebSocket termination points.
+    \item \textbf{Frontend on Vercel:} The React application utilizes Vercel's edge network. React Router DOM paths are handled via native server rewrites to prevent sub-path 404 errors.
+    \item \textbf{Documentation:} Comprehensive setup, testing, and live deployment instructions are provided in the repository's \texttt{README.md}, ensuring rapid onboarding for evaluators and developers.
 \end{itemize}
 
 \section{Conclusion}
