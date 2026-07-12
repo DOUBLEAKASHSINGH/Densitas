@@ -3,11 +3,11 @@
 \usepackage{geometry}
 \geometry{margin=1in}
 \usepackage{graphicx}
-\usepackage{hyperref}
-\usepackage{booktabs}
 \usepackage{enumitem}
 \usepackage{float}
 \usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows, positioning}
 
 \title{\textbf{OptiFlow: Spatial Intelligence and Crowd Orchestration System}\\
 \large Architecture and Implementation Report}
@@ -27,6 +27,58 @@ Managing extreme crowd density requires transitioning from reactive surveillance
 
 \section{System Architecture}
 The OptiFlow platform is constructed on a multi-tiered architecture designed for extreme low-latency processing and zero-hallucination reliability.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        node distance=0.8cm and 1cm,
+        box/.style={rectangle, draw=blue!70, fill=blue!5, very thick, minimum width=2.8cm, minimum height=0.8cm, align=center, rounded corners, font=\small},
+        edgebox/.style={rectangle, draw=gray!70, fill=gray!5, very thick, minimum width=2.8cm, minimum height=0.8cm, align=center, rounded corners, font=\small},
+        reactbox/.style={rectangle, draw=teal!70, fill=teal!5, very thick, minimum width=2.8cm, minimum height=0.8cm, align=center, rounded corners, font=\small},
+        modelbox/.style={cylinder, draw=orange!70, fill=orange!5, very thick, aspect=0.25, minimum width=2.2cm, minimum height=1cm, align=center, shape border rotate=90, font=\small},
+        arrow/.style={-stealth, thick, draw=gray!80}
+        ]
+
+        % Offline Training Pipeline (Top)
+        \node (db) [modelbox] {Historical Data\\(CSV/TimescaleDB)};
+        \node (train) [box, right=1.5cm of db] {XGBoost Training\\(Offline)};
+        \node (model) [modelbox, right=1.5cm of train] {model.pkl\\(joblib export)};
+
+        \draw [arrow] (db) -- node[anchor=south, font=\scriptsize] {Telemetry} (train);
+        \draw [arrow] (train) -- (model);
+
+        % Separation Line
+        \draw [dashed, thick, draw=gray!60] (-2, -1.5) -- (12, -1.5);
+        \node [anchor=west, font=\scriptsize, text=gray!70] at (-2, -1.3) {OFFLINE TRAINING PHASE};
+        \node [anchor=west, font=\scriptsize, text=gray!70] at (-2, -1.7) {ONLINE INFERENCE PHASE};
+
+        % Online Inference Pipeline (Bottom)
+        \node (iot) [edgebox, below=2cm of db] {Hardware/IoT Nodes\\(C++ Edge)};
+        \node (ingest) [box, right=0.8cm of iot] {FastAPI Ingestion\\(\texttt{/ingest})};
+        
+        \node (density) [box, right=0.8cm of ingest] {Density Agent};
+        \node (prediction) [box, right=0.8cm of density] {Prediction Agent};
+        
+        \node (decision) [box, below=0.8cm of prediction] {Decision Agent};
+        \node (alert) [box, left=0.8cm of decision] {Alert Agent};
+        \node (ws) [box, left=0.8cm of alert] {WebSocket Manager};
+        \node (react) [reactbox, left=0.8cm of ws] {React Dashboard\\(Frontend SPA)};
+
+        % Inference arrows
+        \draw [arrow] (iot) -- node[anchor=south, font=\scriptsize] {JSON} (ingest);
+        \draw [arrow] (ingest) -- (density);
+        \draw [arrow] (density) -- (prediction);
+        \draw [arrow] (model) -- node[anchor=west, font=\scriptsize] {Loaded via joblib} (prediction);
+        \draw [arrow] (prediction) -- (decision);
+        \draw [arrow] (decision) -- (alert);
+        \draw [arrow] (alert) -- (ws);
+        \draw [arrow] (ws) -- node[anchor=south, font=\scriptsize] {wss://} (react);
+        \draw [arrow, dashed] (react.west) -| ([xshift=-0.5cm]iot.west) -- (iot.west);
+        
+    \end{tikzpicture}
+    \caption{OptiFlow Architecture: Decoupled ML Training and Deterministic Agent Inference}
+    \label{fig:architecture}
+\end{figure}
 
 \subsection{Data Collection and Edge Telemetry}
 In physical deployments, computer-vision nodes and LiDAR sensors are stationed at venue choke-points.
