@@ -14,12 +14,23 @@ export default function Dashboard() {
   const getEventData = () => {
     if (routerLocation.state?.eventData) return routerLocation.state.eventData;
     try {
-      const stored = sessionStorage.getItem('selectedEvent');
+      const stored = localStorage.getItem('optiflow_active_venue');
       return stored ? JSON.parse(stored) : null;
-    } catch { return null; }
+    } catch (err) {
+      console.error("Failed to parse local storage venue data", err);
+      return null;
+    }
   };
   
   const eventData = getEventData();
+
+  useEffect(() => {
+    if (!eventData) {
+      navigate('/select-location');
+    }
+  }, [eventData, navigate]);
+
+  if (!eventData) return null;
 
   const [zoneStates, setZoneStates] = useState({});
   const [chartData, setChartData] = useState([]);

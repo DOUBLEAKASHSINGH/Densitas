@@ -29,8 +29,12 @@ export default function AuthWall() {
         await signInWithEmailAndPassword(auth, email, password);
       }
       
-      // On success, navigate to the onboarding flow
-      navigate('/select-location');
+      // On success, navigate to dashboard if returning, or onboarding if new
+      if (localStorage.getItem('optiflow_active_venue')) {
+        navigate('/dashboard');
+      } else {
+        navigate('/select-location');
+      }
     } catch (err) {
       console.error(err);
       if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
