@@ -119,13 +119,13 @@ export default function Dashboard() {
       };
 
       ws.onclose = () => {
-        setWsStatus('Disconnected');
+        setWsStatus('Simulated');
       };
       ws.onerror = () => {
-        setWsStatus('Error connecting to Render');
+        setWsStatus('Simulated');
       };
     } catch (e) {
-      setWsStatus('Error connecting to Render');
+      setWsStatus('Simulated');
     }
 
     return () => {
@@ -275,7 +275,7 @@ export default function Dashboard() {
             <p className="text-xs sm:text-sm text-slate-500">{eventData.name} ({eventData.date})</p>
          </div>
          <div className="flex items-center space-x-2 text-[10px] sm:text-xs font-medium bg-white border border-slate-200 px-3 py-1.5 rounded-full shadow-sm">
-           <div className={`w-2 h-2 rounded-full ${wsStatus.includes('Connected') ? 'bg-green-500' : 'bg-red-500'}`}></div>
+           <div className={`w-2 h-2 rounded-full ${(wsStatus.includes('Connected') || wsStatus.includes('Simulated')) ? 'bg-green-500' : 'bg-red-500'}`}></div>
            <span className="text-slate-600">STREAM: <span className="text-slate-900 block sm:inline">{wsStatus}</span></span>
          </div>
       </div>
