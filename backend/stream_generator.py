@@ -1,73 +1,50 @@
 import time
-import json
+import math
 import random
-import datetime
 import requests
 
-# ---------------------------------------------------------
-# OptiFlow Data Simulator
-# Generates synthetic live foot traffic and pushes to a FastAPI endpoint.
-# ---------------------------------------------------------
+API_URL = "http://localhost:8000/api/telemetry"
 
-# Target FastAPI endpoint (Render Live URL)
-FASTAPI_URL = "https://optiflow-backend.onrender.com/api/telemetry"
+# Real-world mid-2026 event metadata configurations
+venues = [
+    {"name": "Pharma Pro & Pack Expo", "location": "HITEX Exhibition Centre, Hall 1", "max": 2000, "id": "HITEX-H1"},
+    {"name": "Pharma Pro & Pack Expo", "location": "HITEX Exhibition Centre, Hall 3", "max": 1500, "id": "HITEX-H3"},
+    {"name": "Harris Jayaraj Live", "location": "Boulder Hills Open Arena", "max": 5000, "id": "BH-OA"}
+]
 
-# Known zones from our seeded PostgreSQL database
-ZONES = [1, 2, 3]
+print("Initializing live hardware telemetry simulation...")
 
-def generate_telemetry_stream():
-    """
-    Simulates live foot traffic by sending a JSON payload every 1 second.
-    Occasionally triggers a "surge" in a specific zone to test downstream agents.
-    """
-    print(f"Starting OptiFlow telemetry simulator. Pushing to {FASTAPI_URL}...")
-    
-    while True:
-        # Generate timestamp in UTC format suitable for TimescaleDB
-        current_time = datetime.datetime.now(datetime.timezone.utc).isoformat()
-        zone_id = random.choice(ZONES)
+tick = 0
+while True:
+    for venue in venues:
+        tick += 1
         
-        # Base metrics representing normal event traffic
-        headcount = random.randint(50, 400)
-        flow_rate = random.randint(-10, 20)
+        # Base population using a sine wave to represent standard entry/exit traffic waves
+        base_sine = (math.sin(tick * 0.1) + 1) / 2  # Cycles smoothly between 0 and 1
         
-        # -------------------------------------------------
-        # Surge Simulation (Edge Case)
-        # -------------------------------------------------
-        # We introduce a ~5% chance to simulate a rapid, extreme spike in headcount.
-        # This tests our system's downstream agent orchestration (e.g., dispatching staff).
-        if random.random() < 0.05:
-            headcount += random.randint(1000, 3000)  # Massive surge
-            flow_rate += random.randint(100, 300)
-            print(f"[{current_time}] ⚠️ SURGE DETECTED in Zone {zone_id}! Headcount: {headcount}")
-        
+        # Introduce a 10% chance of a massive localized crowd surge (e.g., concert finale or sudden rain)
+        if random.random() > 0.90:
+            headcount = int(venue["max"] * random.uniform(0.86, 0.98))
+            flow_rate = random.uniform(45.0, 75.0)
+            print(f"⚠️ [ANOMALY DETECTED] Simulating severe bottleneck velocity vectors at {venue['location']}")
+        else:
+            headcount = int(venue["max"] * (base_sine * 0.6 + 0.2))  # Fluctuates naturally between 20% and 80%
+            flow_rate = random.uniform(12.0, 32.0)
+
         payload = {
-            "timestamp": current_time,
-            "zone_id": zone_id,
+            "venue": venue["name"],
+            "zone_id": venue["id"],
+            "location_name": venue["location"],
             "headcount": headcount,
-            "flow_rate": flow_rate
+            "max_capacity": venue["max"],
+            "flow_rate": round(flow_rate, 2)
         }
-        
-        try:
-            # Attempt to POST the data to our FastAPI endpoint
-            response = requests.post(FASTAPI_URL, json=payload, timeout=2)
-            
-            if response.status_code == 200:
-                print(f"[{current_time}] Successfully pushed data to Zone {zone_id}")
-            else:
-                print(f"[{current_time}] Received non-200 status code: {response.status_code}")
-                
-        except requests.exceptions.RequestException as e:
-            # We catch the exception gracefully so the simulator can run
-            # even while the FastAPI server is being developed or is down.
-            print(f"[{current_time}] (Local) Payload generated: {json.dumps(payload)}")
-            # print(f"Endpoint unreachable: {e}")
-            
-        # Ensure we push payload exactly every 1 second
-        time.sleep(1)
 
-if __name__ == "__main__":
-    try:
-        generate_telemetry_stream()
-    except KeyboardInterrupt:
-        print("\nSimulator stopped by user.")
+        try:
+            response = requests.post(API_URL, json=payload, timeout=2)
+            if response.status_code == 200:
+                print(f"Sent -> {venue['location']} | Occupancy: {headcount}/{venue['max']} | Flow: {payload['flow_rate']}/min")
+        except requests.exceptions.ConnectionError:
+            print("❌ Backend connection refused. Verify that main.py is running on port 8000.")
+
+    time.sleep(1.5)

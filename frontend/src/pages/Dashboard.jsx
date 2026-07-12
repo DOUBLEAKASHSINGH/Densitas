@@ -45,24 +45,24 @@ export default function Dashboard() {
 
     let ws;
     try {
-      ws = new WebSocket('wss://optiflow-backend.onrender.com/ws/dashboard');
+      ws = new WebSocket('ws://localhost:8000/ws/dashboard');
       
       ws.onopen = () => {
-        setWsStatus('Connected (Live Render)');
+        setWsStatus('Connected (Local Live)');
       };
 
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
           
-          const zoneMap = { 1: 'A', 2: 'B', 3: 'C', 4: 'D' };
+          const zoneMap = { 'HITEX-H1': 'A', 'HITEX-H3': 'C', 'BH-OA': 'D' };
           const targetZone = zoneMap[data.zone_id] || 'A';
           
-          const targetCap = data.current_capacity_pct;
-          const predictedCap = data.predicted_capacity_pct_5m;
-          const action = data.action_required || 'None';
+          const targetCap = data.current_capacity;
+          const predictedCap = data.predicted_capacity;
+          const action = data.agent_log || 'None';
           const timestamp = data.timestamp || new Date().toISOString();
-          const timeStr = timestamp.split('T')[1] ? timestamp.split('T')[1].substring(0, 8) : timestamp;
+          const timeStr = timestamp;
           const areaName = ZONE_META[targetZone] || `Zone ${targetZone}`;
 
           setActiveAgentIndex(3); 
@@ -139,7 +139,7 @@ export default function Dashboard() {
     if (!eventData) return;
     
     // Only run if not connected to live stream
-    if (wsStatus === 'Connected (Live Render)') return;
+    if (wsStatus === 'Connected (Local Live)') return;
 
     const fallbackInterval = setInterval(() => {
       const nowMs = Date.now();

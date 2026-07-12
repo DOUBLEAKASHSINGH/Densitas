@@ -1,131 +1,150 @@
-from fastapi import FastAPI, Request, status, WebSocket, WebSocketDisconnect
-from fastapi.responses import JSONResponse
+import asyncio
+import random
+import time
+from typing import List, Dict
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from typing import List
-import logging
+from pydantic import BaseModel
 
-from agents import AgentOrchestrator
+app = FastAPI(title="OptiFlow Core Processing Engine")
 
-# Setup logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-# Initialize FastAPI App
-app = FastAPI(
-    title="OptiFlow API",
-    description="Deterministic AI backend for Live Event Crowd Control with Real-Time WebSockets.",
-    version="1.0.0",
-)
-
-# CORS configuration for the React frontend
-origins = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
-
+# Enable CORS for frontend communication
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# ---------------------------------------------------------
-# Phase 3: WebSocket Connection Manager
-# ---------------------------------------------------------
+# ----------------------------------------------------------------
+# WEBSOCKET CONNECTION MANAGER
+# ----------------------------------------------------------------
 class ConnectionManager:
-    """Handles active WebSocket clients and broadcasts data in real-time."""
     def __init__(self):
         self.active_connections: List[WebSocket] = []
 
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
         self.active_connections.append(websocket)
-        logger.info(f"WebSocket connected. Total clients: {len(self.active_connections)}")
 
     def disconnect(self, websocket: WebSocket):
         if websocket in self.active_connections:
             self.active_connections.remove(websocket)
-            logger.info(f"WebSocket disconnected. Total clients: {len(self.active_connections)}")
 
-    async def broadcast(self, message: str):
-        """Broadcasts a JSON string to all connected clients with graceful error handling."""
-        disconnected_clients = []
+    async def broadcast(self, message: dict):
+        dead_connections = []
         for connection in self.active_connections:
             try:
-                await connection.send_text(message)
-            except RuntimeError:
-                # Handles edge case where connection state is invalid
-                disconnected_clients.append(connection)
-            except Exception as e:
-                logger.error(f"Failed to send message to a client: {e}")
-                disconnected_clients.append(connection)
-                
-        # Clean up any dropped clients to prevent memory leaks
-        for client in disconnected_clients:
-            self.disconnect(client)
+                await connection.send_json(message)
+            except Exception:
+                # Handle dead client connections gracefully
+                dead_connections.append(connection)
+        
+        for dead in dead_connections:
+            self.disconnect(dead)
 
 manager = ConnectionManager()
-orchestrator = AgentOrchestrator()
+
+# Data model for incoming edge telemetry
+class TelemetryPayload(BaseModel):
+    venue: str
+    zone_id: str
+    location_name: str
+    headcount: int
+    max_capacity: int
+    flow_rate: float
+
+# ----------------------------------------------------------------
+# THE DETERMINISTIC MULTI-AGENT PIPELINE
+# ----------------------------------------------------------------
+class DensityAgent:
+    def process(self, payload: TelemetryPayload) -> float:
+        # Computes pure mathematical saturation profile
+        if payload.max_capacity <= 0:
+            return 0.0
+        return round((payload.headcount / payload.max_capacity) * 100, 2)
+
+class PredictionAgent:
+    def process(self, current_density: float, flow_rate: float) -> float:
+        # Proxy for XGBoost regression trend analysis looking 5 minutes ahead
+        # If flow rate is positive, capacity is predicted to scale upwards linearly
+        growth_factor = flow_rate * 0.45 
+        predicted_density = current_density + growth_factor
+        return round(max(0.0, min(100.0, predicted_density)), 2)
+
+class DecisionAgent:
+    def process(self, zone: str, current: float, predicted: float) -> Dict:
+        # Explicit, non-hallucinating corporate safety logic rules
+        status = "NORMAL"
+        action = "MONITORING METRICS: Flow rates within nominal safety thresholds."
+        dispatch = "Standby"
+        signage = f"WELCOME TO THE {zone.upper()}"
+
+        if predicted >= 85.0 or current >= 85.0:
+            status = "CRITICAL"
+            action = f"CRITICAL CONGESTION: Zone {zone} capacity breached. Opening all secondary emergency exits."
+            dispatch = "DEPLOYED: 5 Marshals"
+            signage = f"ALERT: REROUTE IMMEDIATELY TO EXIT C"
+        elif predicted >= 70.0 or current >= 70.0:
+            status = "WARNING"
+            action = f"WARNING INDICATOR: High traffic buildup detected in Zone {zone}. Diverting incoming queues."
+            dispatch = "STANDBY: 2 Guards Assigned"
+            signage = f"NOTICE: EXTENDED DELAYS USE ALTERNATE PATHS"
+
+        return {"status": status, "action": action, "dispatch": dispatch, "signage": signage}
+
+class AlertAgent:
+    def serialize(self, payload: TelemetryPayload, density: float, predicted: float, decision: Dict) -> dict:
+        # Formats the unified payload explicitly for UI components
+        return {
+            "timestamp": time.strftime("%H:%M:%S"),
+            "stream_status": "Connected",
+            "venue": payload.venue,
+            "zone_id": payload.zone_id,
+            "location_name": payload.location_name,
+            "current_capacity": density,
+            "predicted_capacity": predicted,
+            "agent_status": decision["status"],
+            "agent_log": f"> [AlertAgent] {decision['action']}",
+            "dispatch_status": decision["dispatch"],
+            "signage_text": decision["signage"],
+            "gate_metrics": {
+                "flow_rate": payload.flow_rate,
+                "congestion_index": round(density * 0.9, 2)
+            }
+        }
+
+# Instantiate our micro-agent classes
+density_agent = DensityAgent()
+prediction_agent = PredictionAgent()
+decision_agent = DecisionAgent()
+alert_agent = AlertAgent()
+
+# ----------------------------------------------------------------
+# API ROUTES & LIVE STREAM BUS
+# ----------------------------------------------------------------
+@app.post("/api/telemetry")
+async def ingest_telemetry(payload: TelemetryPayload):
+    # Execute the modular multi-agent lifecycle on the live tick
+    current_density = density_agent.process(payload)
+    predicted_density = prediction_agent.process(current_density, payload.flow_rate)
+    decision = decision_agent.process(payload.location_name, current_density, predicted_density)
+    
+    # Package into clean JSON
+    frontend_packet = alert_agent.serialize(payload, current_density, predicted_density, decision)
+    
+    # Broadcast the data downstream instantly over WebSockets
+    await manager.broadcast(frontend_packet)
+    
+    return {"status": "processed", "target_clients": len(manager.active_connections)}
 
 @app.websocket("/ws/dashboard")
-async def websocket_dashboard(websocket: WebSocket):
-    """
-    WebSocket endpoint for the React frontend to listen to live telemetry 
-    and deterministic agent decisions.
-    """
+async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
     try:
         while True:
-            # We keep the connection alive. We don't expect messages from the frontend dashboard.
+            # Keep the channel alive and listening for client updates
             await websocket.receive_text()
     except WebSocketDisconnect:
         manager.disconnect(websocket)
-
-
-@app.post("/ingest")
-async def ingest_telemetry(request: Request):
-    """
-    Endpoint to receive live telemetry stream from sensors/generators.
-    Triggers the multi-agent pipeline sequentially in a fast event loop,
-    and then broadcasts the AlertAgent output via WebSockets.
-    """
-    try:
-        payload = await request.json()
-        
-        # Run the lightweight ML agent pipeline
-        alert_result_json = orchestrator.run_pipeline(payload)
-        
-        # -------------------------------------------------
-        # Real-Time Event Bus
-        # Hook the AlertAgent's output into the ConnectionManager
-        # -------------------------------------------------
-        await manager.broadcast(alert_result_json)
-        
-        # We can also save this to TimescaleDB here
-        # ... db logic ...
-        
-        return JSONResponse(content={"status": "success", "agent_output": alert_result_json})
-        
-    except Exception as e:
-        logger.error(f"Error processing telemetry: {str(e)}")
-        return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
-
-# Map the stream_generator's /api/telemetry to the same ingest logic
-@app.post("/api/telemetry")
-async def api_telemetry(request: Request):
-    return await ingest_telemetry(request)
-
-# Global Exception Handler Middleware
-@app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
-    logger.error(f"Unhandled exception occurred: {exc}", exc_info=True)
-    return JSONResponse(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={"message": "An unexpected internal server error occurred."},
-    )
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
