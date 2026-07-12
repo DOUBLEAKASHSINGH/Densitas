@@ -1,89 +1,59 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Calendar, ArrowRight, AlertTriangle, Building, Globe, TestTube2 } from 'lucide-react';
-
-const INDIA_LOCATION_MATRIX = {
-  "Andhra Pradesh": ["Visakhapatnam", "Vijayawada", "Guntur", "Nellore"],
-  "Arunachal Pradesh": ["Itanagar", "Tawang"],
-  "Assam": ["Guwahati", "Silchar", "Dibrugarh"],
-  "Bihar": ["Patna", "Gaya", "Bhagalpur"],
-  "Chhattisgarh": ["Raipur", "Bhilai", "Bilaspur"],
-  "Goa": ["Panaji", "Margao", "Vasco da Gama"],
-  "Gujarat": ["Ahmedabad", "Surat", "Vadodara", "Rajkot"],
-  "Haryana": ["Faridabad", "Gurugram", "Panipat", "Ambala"],
-  "Himachal Pradesh": ["Shimla", "Manali", "Dharamshala"],
-  "Jharkhand": ["Ranchi", "Jamshedpur", "Dhanbad"],
-  "Karnataka": ["Bengaluru", "Mysuru", "Mangaluru", "Hubballi"],
-  "Kerala": ["Thiruvananthapuram", "Kochi", "Kozhikode"],
-  "Madhya Pradesh": ["Bhopal", "Indore", "Gwalior", "Jabalpur"],
-  "Maharashtra": ["Mumbai", "Pune", "Nagpur", "Nashik", "Aurangabad"],
-  "Manipur": ["Imphal"],
-  "Meghalaya": ["Shillong"],
-  "Mizoram": ["Aizawl"],
-  "Nagaland": ["Kohima", "Dimapur"],
-  "Odisha": ["Bhubaneswar", "Cuttack", "Rourkela"],
-  "Punjab": ["Ludhiana", "Amritsar", "Jalandhar", "Patiala"],
-  "Rajasthan": ["Jaipur", "Jodhpur", "Udaipur", "Kota"],
-  "Sikkim": ["Gangtok"],
-  "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai", "Tiruchirappalli"],
-  "Telangana": ["Hyderabad", "Warangal", "Nizamabad", "Khammam"],
-  "Tripura": ["Agartala"],
-  "Uttar Pradesh": ["Lucknow", "Kanpur", "Ghaziabad", "Agra", "Varanasi"],
-  "Uttarakhand": ["Dehradun", "Haridwar", "Roorkee"],
-  "West Bengal": ["Kolkata", "Howrah", "Darjeeling", "Siliguri"],
-  // Union Territories
-  "Andaman and Nicobar Islands": ["Port Blair"],
-  "Chandigarh": ["Chandigarh"],
-  "Dadra and Nagar Haveli and Daman and Diu": ["Daman", "Diu", "Silvassa"],
-  "Delhi": ["New Delhi"],
-  "Jammu and Kashmir": ["Srinagar", "Jammu"],
-  "Ladakh": ["Leh", "Kargil"],
-  "Lakshadweep": ["Kavaratti"],
-  "Puducherry": ["Puducherry"]
-};
-
-const REAL_EVENTS = {
-  "Hyderabad": [
-    {
-      id: 'pharma-pro',
-      name: "Pharma Pro & Pack Expo - HITEX Exhibition Centre",
-      date: "Jul 9-11, 2026",
-      centerLat: 17.4727,
-      centerLng: 78.3725,
-      gates: [
-        { id: "Main Entry", type: "primary" },
-        { id: "Hall 1 Gate", type: "secondary" },
-        { id: "Hall 3 Gate", type: "secondary" },
-        { id: "Cargo Gate", type: "freight" }
-      ]
-    },
-    {
-      id: 'harris-live',
-      name: "Harris Jayaraj Live - Boulder Hills",
-      date: "Sep 5, 2026",
-      centerLat: 17.4255,
-      centerLng: 78.3410,
-      gates: [
-        { id: "VVIP Gate", type: "primary" },
-        { id: "General Pass Gate", type: "secondary" }
-      ]
-    }
-  ]
-};
+import { MapPin, Calendar, ArrowRight, AlertTriangle, Building, Globe, TestTube2, RefreshCw, Loader2 } from 'lucide-react';
 
 export default function SelectLocation() {
   const navigate = useNavigate();
   
+  const [venueData, setVenueData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
+
   const [country, setCountry] = useState('');
   const [stateName, setStateName] = useState('');
   const [city, setCity] = useState('');
   const [selectedEventId, setSelectedEventId] = useState('');
 
-  // Dropdowns
-  const countries = ["India"];
-  const states = country === "India" ? Object.keys(INDIA_LOCATION_MATRIX) : [];
-  const cities = stateName ? (INDIA_LOCATION_MATRIX[stateName] || []) : [];
-  const events = city ? (REAL_EVENTS[city] || []) : [];
+  const fetchVenues = async () => {
+    setIsLoading(true);
+    setIsError(false);
+    try {
+      const response = await fetch('http://localhost:8000/api/venues');
+      if (!response.ok) throw new Error('Network response was not ok');
+      const data = await response.json();
+      setVenueData(data);
+    } catch (error) {
+      console.error("Failed to fetch venues:", error);
+      setIsError(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchVenues();
+  }, []);
+
+  // Dropdowns based on fetched hierarchical data
+  const countries = venueData ? Object.keys(venueData) : [];
+  const states = (venueData && country) ? Object.keys(venueData[country] || {}) : [];
+  const cities = (venueData && country && stateName) ? Object.keys(venueData[country][stateName] || {}) : [];
+  
+  // Transform API events into the format expected by Dashboard
+  const rawEvents = (venueData && country && stateName && city) ? (venueData[country][stateName][city] || []) : [];
+  const events = rawEvents.map(evt => ({
+    id: evt.name.replace(/\s+/g, '-').toLowerCase(),
+    name: evt.name,
+    date: "Active Deployment",
+    centerLat: evt.latitude,
+    centerLng: evt.longitude,
+    gates: [
+      { id: "North Gate", type: "primary" },
+      { id: "East Wing", type: "secondary" },
+      { id: "South Gate", type: "primary" },
+      { id: "West Freight", type: "freight" }
+    ]
+  }));
 
   // Cascading resets
   useEffect(() => { setStateName(''); setCity(''); setSelectedEventId(''); }, [country]);
@@ -94,7 +64,7 @@ export default function SelectLocation() {
     } else {
       setSelectedEventId('');
     }
-  }, [city, events]);
+  }, [city]); 
 
   const handleEnterEvent = () => {
     const activeEvent = events.find(e => e.id === selectedEventId);
@@ -109,7 +79,7 @@ export default function SelectLocation() {
       id: 'sandbox-sim',
       name: `Simulated Venue - ${city}`,
       date: "Active Sandbox",
-      centerLat: 20.5937, // Default roughly center of India
+      centerLat: 20.5937, 
       centerLng: 78.9629,
       gates: [
         { id: "North Gate", type: "primary" },
@@ -122,16 +92,43 @@ export default function SelectLocation() {
     navigate('/dashboard', { state: { eventData: sandboxEvent } });
   };
 
+  if (isLoading) {
+    return (
+      <div className="h-full w-full bg-slate-50 flex flex-col items-center justify-center p-4">
+        <div className="flex items-center space-x-3 text-indigo-600 mb-4">
+          <Loader2 className="animate-spin" size={32} />
+          <h2 className="text-xl font-semibold animate-pulse">Establishing secure connection to venue database...</h2>
+        </div>
+        <p className="text-slate-500 text-sm">Synchronizing live geographic telemetry nodes.</p>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="h-full w-full bg-slate-50 flex flex-col items-center justify-center p-4">
+        <div className="bg-white p-8 rounded-xl shadow-sm border border-red-200 max-w-md text-center">
+          <AlertTriangle className="mx-auto text-red-500 mb-4" size={48} />
+          <h2 className="text-xl font-bold text-slate-900 mb-2">Connection Failed</h2>
+          <p className="text-slate-500 mb-6 text-sm">Unable to reach the OptiFlow backend API. Ensure the server is running on port 8000.</p>
+          <button 
+            onClick={fetchVenues}
+            className="w-full flex justify-center items-center py-3 px-4 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-semibold shadow-sm"
+          >
+            <RefreshCw size={18} className="mr-2" /> Retry Connection
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-full w-full bg-slate-50 overflow-y-auto p-4 sm:p-8 flex items-center justify-center">
-      
       <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-8 sm:p-10 w-full max-w-3xl">
-        
         <h2 className="text-3xl font-extrabold text-slate-900 mb-2">Location Context</h2>
         <p className="text-slate-500 mb-8 text-sm md:text-base">Configure the command center viewport by selecting an active geographic region.</p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          
           {/* Country Selection */}
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center">
@@ -178,7 +175,6 @@ export default function SelectLocation() {
               {cities.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
-
         </div>
 
         {/* Dynamic Event Selection or Warning Banner */}
