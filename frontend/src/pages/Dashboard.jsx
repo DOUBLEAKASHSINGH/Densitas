@@ -328,11 +328,11 @@ export default function Dashboard() {
               <div className="space-y-4">
                 <div>
                   <p className="text-[9px] sm:text-[10px] text-slate-400 font-semibold tracking-wide">MEAN ABS ERROR</p>
-                  <p className="text-sm sm:text-lg font-bold text-green-600">1.24%</p>
+                  <p className="text-sm sm:text-lg font-bold text-green-600">14.79</p>
                 </div>
                 <div>
-                  <p className="text-[9px] sm:text-[10px] text-slate-400 font-semibold tracking-wide">ROOT MEAN SQ</p>
-                  <p className="text-sm sm:text-lg font-bold text-green-600">2.11%</p>
+                  <p className="text-[9px] sm:text-[10px] text-slate-400 font-semibold tracking-wide">R² SCORE</p>
+                  <p className="text-sm sm:text-lg font-bold text-green-600">0.9987</p>
                 </div>
                 <div>
                   <p className="text-[9px] sm:text-[10px] text-slate-400 font-semibold tracking-wide">INFERENCE LATENCY</p>

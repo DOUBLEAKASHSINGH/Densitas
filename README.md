@@ -2,6 +2,11 @@
 
 ![OptiFlow](https://img.shields.io/badge/Status-Live-success) ![Version](https://img.shields.io/badge/Version-1.0.0-blue) ![Stack](https://img.shields.io/badge/Stack-React%20%7C%20FastAPI%20%7C%20C++-indigo)
 
+**Live Deployment Links:**
+- **Frontend (Vercel):** [https://optiflow-demo.vercel.app](https://optiflow-demo.vercel.app) *(Requires active backend)*
+- **Backend API (Render):** [https://optiflow-api.onrender.com](https://optiflow-api.onrender.com)
+- **API Documentation (Swagger):** [https://optiflow-api.onrender.com/docs](https://optiflow-api.onrender.com/docs)
+
 OptiFlow Enterprise is a production-grade spatial intelligence and crowd orchestration platform built for high-density live events, transit hubs, and large-scale venues. By combining edge-computed IoT telemetry, predictive machine learning regression models, and deterministic multi-agent orchestration, OptiFlow converts raw camera and sensor data into proactive safety routing. This platform serves to eliminate bottlenecks, monitor gate flow rates, and mitigate the risk of crowd crushes through autonomous incident detection.
 
 ---
@@ -23,11 +28,15 @@ When the `/ingest` API endpoint receives a telemetry packet from the edge, it ro
 3. **DecisionAgent**: The deterministic rule engine. If the predicted future capacity exceeds predefined safety thresholds (e.g., Warning at 70%, Critical at 85%), it triggers hardcoded, zero-hallucination tactical responses such as routing traffic, deploying personnel, or changing signage.
 4. **AlertAgent**: This agent finalizes the pipeline by serializing the states of all previous agents into a strict, unified JSON payload for frontend consumption.
 
-### 3. Real-Time Transport Layer (WebSockets)
+### 3. Real-Time Transport Layer (WebSockets) & API
 FastAPI maintains an active, persistent `ConnectionManager` utilizing asynchronous WebSockets. The `AlertAgent` hooks directly into this event bus, instantly broadcasting the serialized telemetry to all active frontend React clients via the `wss://[domain]/ws/dashboard` endpoint at a sub-100ms latency.
+Additionally, the platform integrates natively with real-world infrastructure like the **Ticketmaster Discovery API** via our `/api/live-events/{city}` endpoint to dynamically stream live venue locations into the frontend. 
+**Developers:** You can view our fully auto-generated Swagger UI documentation by navigating to `/docs` on the running backend server.
 
 ### 4. Data Storage and Time-Series Preprocessing
-- **TimescaleDB (PostgreSQL via Supabase)**: The database schema (`schema.sql`) is hyper-optimized for time-series ingestion. 
+> **Hackathon Disclaimer:** While our production architecture (`schema.sql`) explicitly provisions a hybrid **PostgreSQL** (for static venue data) and **TimescaleDB** (for time-series telemetry streams) instance on Supabase, the current *local prototype* bypasses this external dependency. To ensure immediate usability for judges without requiring Docker or DB credentials, `main.py` currently proxies this behavior by streaming historical telemetry from a local CSV flat-file (`historical_telemetry.csv`). 
+
+- **TimescaleDB (PostgreSQL via Supabase) [Production Schema]**: The database schema (`schema.sql`) is hyper-optimized for time-series ingestion. 
 - **Entity Tables Maintenance**: Venue meta-data, zone architectural boundaries, maximum capacity limits, and GPS coordinates are stored in static, normalized relational tables.
 - **Telemetry Indexing**: Raw footfall data is indexed aggressively by UTC timestamps and `zone_id`. This allows downstream analytical pipelines to perform complex aggregations for continuous machine learning model retraining without slowing down active reads.
 
