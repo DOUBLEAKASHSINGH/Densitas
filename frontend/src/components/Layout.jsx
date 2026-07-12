@@ -62,10 +62,33 @@ export default function Layout() {
           {/* Nav Links */}
           <nav className="hidden md:flex space-x-8">
             <button onClick={() => navigate('/dashboard')} className={`text-sm font-medium ${location.pathname.includes('/dashboard') ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'} transition-colors`}>Dashboard</button>
-            <button className="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">Solutions ▾</button>
-            <button onClick={() => navigate('/about')} className={`text-sm font-medium ${location.pathname === '/about' ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'} transition-colors`}>About Us</button>
-            <button onClick={() => navigate('/docs')} className={`text-sm font-medium ${location.pathname === '/docs' ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'} transition-colors`}>Documentation</button>
-            <button className="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">Resources</button>
+            
+            {/* Solutions Dropdown */}
+            <div className="relative group h-full flex items-center">
+              <button className="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors cursor-pointer">Solutions ▾</button>
+              <div className="absolute top-full left-0 pt-2 w-52 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-1 group-hover:translate-y-0">
+                <div className="bg-white border border-slate-200 shadow-xl rounded-lg overflow-hidden flex flex-col">
+                  <button onClick={() => navigate('/about')} className="text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors border-b border-slate-100 cursor-pointer">Stadiums & Arenas</button>
+                  <button onClick={() => navigate('/about')} className="text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors border-b border-slate-100 cursor-pointer">Transit Hubs</button>
+                  <button onClick={() => navigate('/about')} className="text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors cursor-pointer">Convention Centers</button>
+                </div>
+              </div>
+            </div>
+
+            <button onClick={() => navigate('/about')} className={`text-sm font-medium ${location.pathname === '/about' ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'} transition-colors cursor-pointer`}>About Us</button>
+            <button onClick={() => navigate('/docs')} className={`text-sm font-medium ${location.pathname === '/docs' ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'} transition-colors cursor-pointer`}>Documentation</button>
+            
+            {/* Resources Dropdown */}
+            <div className="relative group h-full flex items-center">
+              <button className="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors cursor-pointer">Resources ▾</button>
+              <div className="absolute top-full left-0 pt-2 w-52 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-1 group-hover:translate-y-0">
+                <div className="bg-white border border-slate-200 shadow-xl rounded-lg overflow-hidden flex flex-col">
+                  <button onClick={() => navigate('/docs')} className="text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors border-b border-slate-100 cursor-pointer">API Documentation</button>
+                  <button onClick={() => navigate('/docs')} className="text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors border-b border-slate-100 cursor-pointer">Case Studies</button>
+                  <button onClick={() => navigate('/docs')} className="text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors cursor-pointer">System Status</button>
+                </div>
+              </div>
+            </div>
           </nav>
           
           {/* Profile & Notifications Container */}
@@ -164,9 +187,9 @@ export default function Layout() {
             <div>
               <h4 className="font-bold text-slate-900 mb-4">Product</h4>
               <ul className="space-y-2 text-slate-500 text-xs">
-                <li><button onClick={(e) => { e.preventDefault(); navigate('/about'); }} className="hover:text-indigo-600 transition-colors">Features</button></li>
-                <li><button onClick={(e) => { e.preventDefault(); navigate('/docs'); }} className="hover:text-indigo-600 transition-colors">Integrations</button></li>
-                <li><button onClick={(e) => { e.preventDefault(); navigate('/about'); }} className="hover:text-indigo-600 transition-colors">Pricing</button></li>
+                <li><span onClick={() => navigate('/about')} className="cursor-pointer hover:text-indigo-600 transition-colors">Features</span></li>
+                <li><span onClick={() => navigate('/docs')} className="cursor-pointer hover:text-indigo-600 transition-colors">Integrations</span></li>
+                <li><span onClick={() => navigate('/about')} className="cursor-pointer hover:text-indigo-600 transition-colors">Pricing</span></li>
               </ul>
             </div>
             
@@ -174,9 +197,9 @@ export default function Layout() {
             <div>
               <h4 className="font-bold text-slate-900 mb-4">Company</h4>
               <ul className="space-y-2 text-slate-500 text-xs">
-                <li><button onClick={() => navigate('/about')} className="hover:text-indigo-600 transition-colors">About Us</button></li>
-                <li><button onClick={(e) => { e.preventDefault(); navigate('/about'); }} className="hover:text-indigo-600 transition-colors">Careers</button></li>
-                <li><button onClick={(e) => { e.preventDefault(); navigate('/about'); }} className="hover:text-indigo-600 transition-colors">Blog</button></li>
+                <li><span onClick={() => navigate('/about')} className="cursor-pointer hover:text-indigo-600 transition-colors">About Us</span></li>
+                <li><span onClick={() => navigate('/about')} className="cursor-pointer hover:text-indigo-600 transition-colors">Careers</span></li>
+                <li><span onClick={() => navigate('/about')} className="cursor-pointer hover:text-indigo-600 transition-colors">Blog</span></li>
               </ul>
             </div>
             
@@ -184,9 +207,9 @@ export default function Layout() {
             <div>
               <h4 className="font-bold text-slate-900 mb-4">Legal</h4>
               <ul className="space-y-2 text-slate-500 text-xs">
-                <li><button onClick={(e) => { e.preventDefault(); navigate('/docs'); }} className="hover:text-indigo-600 transition-colors">Privacy Policy</button></li>
-                <li><button onClick={(e) => { e.preventDefault(); navigate('/docs'); }} className="hover:text-indigo-600 transition-colors">Terms of Service</button></li>
-                <li><button onClick={(e) => { e.preventDefault(); navigate('/docs'); }} className="hover:text-indigo-600 transition-colors">Security</button></li>
+                <li><span onClick={() => navigate('/docs')} className="cursor-pointer hover:text-indigo-600 transition-colors">Privacy Policy</span></li>
+                <li><span onClick={() => navigate('/docs')} className="cursor-pointer hover:text-indigo-600 transition-colors">Terms of Service</span></li>
+                <li><span onClick={() => navigate('/docs')} className="cursor-pointer hover:text-indigo-600 transition-colors">Security</span></li>
               </ul>
             </div>
           </div>
