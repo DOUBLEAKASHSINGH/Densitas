@@ -3,9 +3,9 @@
 ![OptiFlow](https://img.shields.io/badge/Status-Live-success) ![Version](https://img.shields.io/badge/Version-1.0.0-blue) ![Stack](https://img.shields.io/badge/Stack-React%20%7C%20FastAPI%20%7C%20C++-indigo)
 
 **Live Deployment Links:**
-- **Frontend (Vercel):** [https://optiflow-demo.vercel.app](https://optiflow-demo.vercel.app) *(Requires active backend)*
-- **Backend API (Render):** [https://optiflow-api.onrender.com](https://optiflow-api.onrender.com)
-- **API Documentation (Swagger):** [https://optiflow-api.onrender.com/docs](https://optiflow-api.onrender.com/docs)
+- **Frontend (Vercel):** [https://densitas-juiq.vercel.app](https://densitas-juiq.vercel.app) *(Requires active backend)*
+- **Backend API (Render):** [https://optiflow-backend-v0x3.onrender.com](https://optiflow-backend-v0x3.onrender.com)
+- **API Documentation (Swagger):** [https://optiflow-backend-v0x3.onrender.com/docs](https://optiflow-backend-v0x3.onrender.com/docs)
 
 OptiFlow Enterprise is a production-grade spatial intelligence and crowd orchestration platform built for high-density live events, transit hubs, and large-scale venues. By combining edge-computed IoT telemetry, predictive machine learning regression models, and deterministic multi-agent orchestration, OptiFlow converts raw camera and sensor data into proactive safety routing. This platform serves to eliminate bottlenecks, monitor gate flow rates, and mitigate the risk of crowd crushes through autonomous incident detection.
 

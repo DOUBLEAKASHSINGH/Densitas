@@ -65,7 +65,7 @@ export default function Dashboard() {
 
     let ws;
     try {
-      ws = new WebSocket('wss://optiflow-api.onrender.com/ws/dashboard');
+      ws = new WebSocket('wss://optiflow-backend-v0x3.onrender.com/ws/dashboard');
       
       ws.onopen = () => {
         setWsStatus('Connected (Local Live)');
