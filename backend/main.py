@@ -185,6 +185,64 @@ alert_agent = AlertAgent()
 # ----------------------------------------------------------------
 # API ROUTES & LIVE STREAM BUS
 # ----------------------------------------------------------------
+@app.get("/api/venues")
+async def get_venues():
+    return {
+        "India": {
+            "Delhi": {
+                "New Delhi": [
+                    {
+                        "name": "Auto Expo 2026 - Pragati Maidan",
+                        "latitude": 28.6182,
+                        "longitude": 77.2410
+                    },
+                    {
+                        "name": "India International Trade Fair - Bharat Mandapam",
+                        "latitude": 28.6145,
+                        "longitude": 77.2405
+                    }
+                ]
+            },
+            "Maharashtra": {
+                "Mumbai": [
+                    {
+                        "name": "Global Fintech Fest - Jio World Convention Centre",
+                        "latitude": 19.0656,
+                        "longitude": 72.8656
+                    },
+                    {
+                        "name": "Ed Sheeran Live - Mahalaxmi Race Course",
+                        "latitude": 18.9823,
+                        "longitude": 72.8150
+                    }
+                ]
+            },
+            "Karnataka": {
+                "Bengaluru": [
+                    {
+                        "name": "Bengaluru Tech Summit - Bangalore Palace",
+                        "latitude": 12.9988,
+                        "longitude": 77.5921
+                    }
+                ]
+            },
+            "Telangana": {
+                "Hyderabad": [
+                    {
+                        "name": "Pharma Pro & Pack Expo - HITEX",
+                        "latitude": 17.4727,
+                        "longitude": 78.3725
+                    },
+                    {
+                        "name": "Harris Jayaraj Live - Boulder Hills",
+                        "latitude": 17.4255,
+                        "longitude": 78.3410
+                    }
+                ]
+            }
+        }
+    }
+
 @app.post("/api/telemetry")
 async def ingest_telemetry(payload: TelemetryPayload):
     # Execute the modular multi-agent lifecycle on the live tick
