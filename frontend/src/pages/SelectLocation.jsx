@@ -195,7 +195,7 @@ export default function SelectLocation() {
         {isLoadingEvents ? (
           <div className="mb-8 p-5 bg-indigo-50 border border-indigo-200 rounded-xl flex items-center space-x-3 text-indigo-700">
             <Loader2 className="animate-spin" size={24} />
-            <h4 className="text-sm font-bold animate-pulse">Querying live venue databases...</h4>
+            <h4 className="text-sm font-bold animate-pulse">Retrieving verified event spaces from database stream...</h4>
           </div>
         ) : city && (liveEventsData.length === 0 || isError) ? (
           <div className="mb-8 p-5 bg-amber-50 border border-amber-200 rounded-xl">
