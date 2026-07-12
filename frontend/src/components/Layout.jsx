@@ -91,9 +91,9 @@ export default function Layout() {
               <button className="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors cursor-pointer">Solutions ▾</button>
               <div className="absolute top-full left-0 pt-2 w-52 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-1 group-hover:translate-y-0">
                 <div className="bg-white border border-slate-200 shadow-xl rounded-lg overflow-hidden flex flex-col">
-                  <button onClick={() => navigate('/about')} className="text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors border-b border-slate-100 cursor-pointer">Stadiums & Arenas</button>
-                  <button onClick={() => navigate('/about')} className="text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors border-b border-slate-100 cursor-pointer">Transit Hubs</button>
-                  <button onClick={() => navigate('/about')} className="text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors cursor-pointer">Convention Centers</button>
+                  <button onClick={() => navigate('/stadiums')} className="text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors border-b border-slate-100 cursor-pointer">Stadiums & Arenas</button>
+                  <button onClick={() => navigate('/transit')} className="text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors border-b border-slate-100 cursor-pointer">Transit Hubs</button>
+                  <button onClick={() => navigate('/convention')} className="text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors cursor-pointer">Convention Centers</button>
                 </div>
               </div>
             </div>
@@ -106,9 +106,9 @@ export default function Layout() {
               <button className="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors cursor-pointer">Resources ▾</button>
               <div className="absolute top-full left-0 pt-2 w-52 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-1 group-hover:translate-y-0">
                 <div className="bg-white border border-slate-200 shadow-xl rounded-lg overflow-hidden flex flex-col">
-                  <button onClick={() => navigate('/docs')} className="text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors border-b border-slate-100 cursor-pointer">API Documentation</button>
-                  <button onClick={() => navigate('/docs')} className="text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors border-b border-slate-100 cursor-pointer">Case Studies</button>
-                  <button onClick={() => navigate('/docs')} className="text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors cursor-pointer">System Status</button>
+                  <button onClick={() => navigate('/api-docs')} className="text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors border-b border-slate-100 cursor-pointer">API Documentation</button>
+                  <button onClick={() => navigate('/case-studies')} className="text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors border-b border-slate-100 cursor-pointer">Case Studies</button>
+                  <button onClick={() => navigate('/status')} className="text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors cursor-pointer">System Status</button>
                 </div>
               </div>
             </div>
@@ -221,9 +221,9 @@ export default function Layout() {
             <div>
               <h4 className="font-bold text-slate-900 mb-4">Product</h4>
               <ul className="space-y-2 text-slate-500 text-xs">
-                <li><span onClick={() => navigate('/about')} className="cursor-pointer hover:text-indigo-600 transition-colors">Features</span></li>
-                <li><span onClick={() => navigate('/docs')} className="cursor-pointer hover:text-indigo-600 transition-colors">Integrations</span></li>
-                <li><span onClick={() => navigate('/about')} className="cursor-pointer hover:text-indigo-600 transition-colors">Pricing</span></li>
+                <li><span onClick={() => navigate('/features')} className="cursor-pointer hover:text-indigo-600 transition-colors">Features</span></li>
+                <li><span onClick={() => navigate('/integrations')} className="cursor-pointer hover:text-indigo-600 transition-colors">Integrations</span></li>
+                <li><span onClick={() => navigate('/pricing')} className="cursor-pointer hover:text-indigo-600 transition-colors">Pricing</span></li>
               </ul>
             </div>
             
@@ -232,8 +232,8 @@ export default function Layout() {
               <h4 className="font-bold text-slate-900 mb-4">Company</h4>
               <ul className="space-y-2 text-slate-500 text-xs">
                 <li><span onClick={() => navigate('/about')} className="cursor-pointer hover:text-indigo-600 transition-colors">About Us</span></li>
-                <li><span onClick={() => navigate('/about')} className="cursor-pointer hover:text-indigo-600 transition-colors">Careers</span></li>
-                <li><span onClick={() => navigate('/about')} className="cursor-pointer hover:text-indigo-600 transition-colors">Blog</span></li>
+                <li><span onClick={() => navigate('/careers')} className="cursor-pointer hover:text-indigo-600 transition-colors">Careers</span></li>
+                <li><span onClick={() => navigate('/blog')} className="cursor-pointer hover:text-indigo-600 transition-colors">Blog</span></li>
               </ul>
             </div>
             
@@ -241,9 +241,9 @@ export default function Layout() {
             <div>
               <h4 className="font-bold text-slate-900 mb-4">Legal</h4>
               <ul className="space-y-2 text-slate-500 text-xs">
-                <li><span onClick={() => navigate('/docs')} className="cursor-pointer hover:text-indigo-600 transition-colors">Privacy Policy</span></li>
-                <li><span onClick={() => navigate('/docs')} className="cursor-pointer hover:text-indigo-600 transition-colors">Terms of Service</span></li>
-                <li><span onClick={() => navigate('/docs')} className="cursor-pointer hover:text-indigo-600 transition-colors">Security</span></li>
+                <li><span onClick={() => navigate('/privacy')} className="cursor-pointer hover:text-indigo-600 transition-colors">Privacy Policy</span></li>
+                <li><span onClick={() => navigate('/terms')} className="cursor-pointer hover:text-indigo-600 transition-colors">Terms of Service</span></li>
+                <li><span onClick={() => navigate('/security')} className="cursor-pointer hover:text-indigo-600 transition-colors">Security</span></li>
               </ul>
             </div>
           </div>
