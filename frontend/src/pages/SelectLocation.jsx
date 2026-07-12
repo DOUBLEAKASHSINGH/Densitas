@@ -78,7 +78,7 @@ export default function SelectLocation() {
       setSelectedEventId('');
       
       try {
-        const response = await fetch(`http://localhost:8000/api/events/${city}`);
+        const response = await fetch(`https://optiflow-api.onrender.com/api/events/${city}`);
         if (!response.ok) throw new Error('Failed to fetch from backend');
         const data = await response.json();
         
