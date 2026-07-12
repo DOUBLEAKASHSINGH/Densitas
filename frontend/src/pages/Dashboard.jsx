@@ -1,26 +1,36 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import StadiumMap from '../components/StadiumMap';
 import OccupancyChart from '../components/OccupancyChart';
 import AgentTerminal from '../components/AgentTerminal';
 import AgentPipeline from '../components/AgentPipeline';
-import { ActivitySquare, MonitorPlay, ShieldAlert } from 'lucide-react';
+import GateMonitor from '../components/GateMonitor';
+import { ActivitySquare, MonitorPlay, ShieldAlert, ArrowLeft } from 'lucide-react';
 
 export default function Dashboard() {
+  const routerLocation = useLocation();
+  const navigate = useNavigate();
+  const eventData = routerLocation.state?.eventData;
+
   const [zoneStates, setZoneStates] = useState({});
   const [chartData, setChartData] = useState([]);
   const [logs, setLogs] = useState([]);
-  const [wsStatus, setWsStatus] = useState('Connected (Mock)');
+  const [wsStatus, setWsStatus] = useState('Connected (Live Render)');
   
   const [activeAgentIndex, setActiveAgentIndex] = useState(-1);
   const [pipelineMessages, setPipelineMessages] = useState(['', '', '', '']);
 
   const [warningThreshold, setWarningThreshold] = useState(70);
   const [criticalThreshold, setCriticalThreshold] = useState(85);
-  const [activeSignage, setActiveSignage] = useState("WELCOME TO HITEX");
+  const [activeSignage, setActiveSignage] = useState("WELCOME TO THE EVENT");
   const [dispatchRoster, setDispatchRoster] = useState([
     { id: 'T-Alpha', status: 'Standby', zone: 'None' },
-    { id: 'T-Bravo', status: 'Standby', zone: 'None' }
+    { id: 'T-Bravo', status: 'Standby', zone: 'None' },
+    { id: 'T-Charlie', status: 'Patrolling', zone: 'Outer Perimeter' }
   ]);
+  
+  // Gate metrics state specifically for the GateMonitor component
+  const [gateMetrics, setGateMetrics] = useState({});
 
   const ZONE_META = {
     'A': 'Hall 1',
@@ -30,7 +40,8 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    // Connect directly to the live Render backend
+    if (!eventData) return; // Wait for redirect if no data
+
     const ws = new WebSocket('wss://optiflow-backend.onrender.com/ws/dashboard');
     
     ws.onopen = () => {
@@ -41,7 +52,6 @@ export default function Dashboard() {
       try {
         const data = JSON.parse(event.data);
         
-        // Map zone integer from backend (1,2,3) to our frontend identifiers (A,B,C)
         const zoneMap = { 1: 'A', 2: 'B', 3: 'C', 4: 'D' };
         const targetZone = zoneMap[data.zone_id] || 'A';
         
@@ -52,7 +62,6 @@ export default function Dashboard() {
         const timeStr = timestamp.split('T')[1] ? timestamp.split('T')[1].substring(0, 8) : timestamp;
         const areaName = ZONE_META[targetZone] || `Zone ${targetZone}`;
 
-        // Flash the pipeline
         setActiveAgentIndex(3); 
         setPipelineMessages([`Ingested ${targetCap}%`, `Predicted ${predictedCap}%`, `Decision applied`, `Published`]);
 
@@ -62,18 +71,21 @@ export default function Dashboard() {
           newSignage = `WARNING: ${areaName.toUpperCase()} CONGESTED. USE ALTERNATE ROUTES.`;
           setDispatchRoster(prev => [
             { id: 'T-Alpha', status: 'Deployed (Code Red)', zone: areaName },
-            { id: 'T-Bravo', status: prev[1].status, zone: prev[1].zone }
+            { id: 'T-Bravo', status: prev[1].status, zone: prev[1].zone },
+            { id: 'T-Charlie', status: prev[2].status, zone: prev[2].zone }
           ]);
         } else if (targetCap >= warningThreshold || action.includes('WARNING')) {
           newSignage = `PLEASE PROCEED CAREFULLY NEAR ${areaName.toUpperCase()}.`;
           setDispatchRoster(prev => [
             { id: 'T-Alpha', status: 'Monitoring', zone: areaName },
-            { id: 'T-Bravo', status: 'Standby', zone: 'None' }
+            { id: 'T-Bravo', status: 'Standby', zone: 'None' },
+            { id: 'T-Charlie', status: prev[2].status, zone: prev[2].zone }
           ]);
         } else {
           setDispatchRoster([
             { id: 'T-Alpha', status: 'Patrolling', zone: 'General' },
-            { id: 'T-Bravo', status: 'Standby', zone: 'HQ' }
+            { id: 'T-Bravo', status: 'Standby', zone: 'HQ' },
+            { id: 'T-Charlie', status: 'Patrolling', zone: 'Outer Perimeter' }
           ]);
         }
 
@@ -109,107 +121,155 @@ export default function Dashboard() {
     return () => {
       ws.close();
     };
-  }, [warningThreshold, criticalThreshold]);
+  }, [warningThreshold, criticalThreshold, eventData]);
 
+  // Simulate purely localized gate telemetry for the GateMonitor visualization
+  useEffect(() => {
+    if (!eventData || !eventData.gates) return;
+    
+    const gateInterval = setInterval(() => {
+      setGateMetrics(prev => {
+        const newMetrics = { ...prev };
+        eventData.gates.forEach(gate => {
+          const oldFlow = newMetrics[gate.id]?.flowRate || 40;
+          const delta = Math.floor(Math.random() * 11) - 5; // -5 to +5
+          const newFlow = Math.max(10, Math.min(150, oldFlow + delta));
+          const newCongestion = Math.min(100, Math.max(0, Math.round((newFlow / 120) * 100)));
+          
+          newMetrics[gate.id] = {
+            flowRate: newFlow,
+            congestion: newCongestion,
+            trend: newFlow > oldFlow ? 'up' : 'down'
+          };
+        });
+        return newMetrics;
+      });
+    }, 2000);
+
+    return () => clearInterval(gateInterval);
+  }, [eventData]);
+
+  if (!eventData) {
+    return (
+      <div className="h-full w-full flex flex-col items-center justify-center bg-slate-50">
+        <p className="text-slate-500 mb-4">No event selected.</p>
+        <button onClick={() => navigate('/select-location')} className="px-4 py-2 bg-indigo-600 text-white rounded-lg flex items-center">
+          <ArrowLeft size={16} className="mr-2" /> Return to Location Selector
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex-1 flex flex-col relative max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
+    <div className="h-full w-full flex flex-col overflow-hidden max-w-[1600px] mx-auto p-4 gap-4">
       
-      {/* Header Info */}
-      <div className="flex justify-between items-center mb-6">
+      {/* Header Info - Fixed Height */}
+      <div className="flex-none flex justify-between items-center">
          <div>
-            <h2 className="text-2xl font-bold text-slate-900">Operational Dashboard</h2>
-            <p className="text-sm text-slate-500">Pharma Pro & Pack Expo (Jul 9-11, 2026) - HITEX Exhibition Centre</p>
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Operational Dashboard</h2>
+            <p className="text-xs sm:text-sm text-slate-500">{eventData.name} ({eventData.date})</p>
          </div>
-         <div className="flex items-center space-x-2 text-xs font-medium bg-white border border-slate-200 px-3 py-1.5 rounded-full shadow-sm">
-           <div className="w-2 h-2 rounded-full bg-green-500"></div>
-           <span className="text-slate-600">STREAM: <span className="text-slate-900">{wsStatus}</span></span>
+         <div className="flex items-center space-x-2 text-[10px] sm:text-xs font-medium bg-white border border-slate-200 px-3 py-1.5 rounded-full shadow-sm">
+           <div className={`w-2 h-2 rounded-full ${wsStatus.includes('Connected') ? 'bg-green-500' : 'bg-red-500'}`}></div>
+           <span className="text-slate-600">STREAM: <span className="text-slate-900 truncate max-w-[100px] sm:max-w-none block sm:inline">{wsStatus}</span></span>
          </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 min-h-[600px]">
+      {/* Main Grid - Remaining Height, No Scroll on Container */}
+      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-4 overflow-hidden">
         
-        {/* Left Column: Map & ML Diagnostics */}
-        <div className="lg:col-span-7 flex flex-col gap-6">
-          <div className="h-96 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden p-2">
-             <StadiumMap zoneStates={zoneStates} />
+        {/* Left Column (7/12) */}
+        <div className="lg:col-span-7 flex flex-col gap-4 overflow-hidden h-full">
+          
+          {/* Map (50% of column height) */}
+          <div className="flex-1 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden p-1 min-h-0 relative z-0">
+             <StadiumMap 
+                zoneStates={zoneStates} 
+                dynamicCenter={[eventData.centerLat, eventData.centerLng]} 
+             />
           </div>
           
-          <div className="flex-1 flex gap-6 min-h-[200px]">
-            <div className="flex-1 bg-white border border-slate-200 rounded-xl shadow-sm p-4">
+          {/* Chart & Diagnostics (50% of column height) */}
+          <div className="flex-1 flex gap-4 min-h-0">
+            <div className="flex-1 bg-white border border-slate-200 rounded-xl shadow-sm p-3 min-h-0 overflow-hidden">
               <OccupancyChart chartData={chartData} />
             </div>
             {/* ML Diagnostics Panel */}
-            <div className="w-48 bg-white border border-slate-200 rounded-xl shadow-sm p-5 flex flex-col justify-center">
-              <div className="flex items-center space-x-2 mb-6">
+            <div className="w-40 sm:w-48 bg-white border border-slate-200 rounded-xl shadow-sm p-4 flex flex-col justify-center flex-none">
+              <div className="flex items-center space-x-2 mb-4">
                 <ActivitySquare size={16} className="text-indigo-600" />
-                <h3 className="text-xs font-bold text-slate-500 tracking-wider">XGBOOST ML</h3>
+                <h3 className="text-[10px] sm:text-xs font-bold text-slate-500 tracking-wider">XGBOOST ML</h3>
               </div>
-              <div className="space-y-5">
+              <div className="space-y-4">
                 <div>
-                  <p className="text-[10px] text-slate-400 font-semibold tracking-wide">MEAN ABS ERROR</p>
-                  <p className="text-lg font-bold text-green-600">1.24%</p>
+                  <p className="text-[9px] sm:text-[10px] text-slate-400 font-semibold tracking-wide">MEAN ABS ERROR</p>
+                  <p className="text-sm sm:text-lg font-bold text-green-600">1.24%</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-slate-400 font-semibold tracking-wide">ROOT MEAN SQ</p>
-                  <p className="text-lg font-bold text-green-600">2.11%</p>
+                  <p className="text-[9px] sm:text-[10px] text-slate-400 font-semibold tracking-wide">ROOT MEAN SQ</p>
+                  <p className="text-sm sm:text-lg font-bold text-green-600">2.11%</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-slate-400 font-semibold tracking-wide">INFERENCE LATENCY</p>
-                  <p className="text-sm font-bold text-slate-800">14ms</p>
+                  <p className="text-[9px] sm:text-[10px] text-slate-400 font-semibold tracking-wide">INFERENCE LATENCY</p>
+                  <p className="text-xs sm:text-sm font-bold text-slate-800">14ms</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Right Column: Tactical Widgets */}
-        <div className="lg:col-span-5 flex flex-col gap-6">
+        {/* Right Column (5/12) */}
+        <div className="lg:col-span-5 flex flex-col gap-4 overflow-hidden h-full">
           
-          {/* Agent Control Panel */}
-          <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5 flex flex-col gap-4">
-             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-                <h3 className="text-sm font-bold text-slate-800">Agent Core Pipeline</h3>
-                <div className="flex space-x-4">
-                  <div className="flex items-center space-x-2 text-[11px] font-semibold">
+          {/* Agent Control Pipeline (Fixed Height) */}
+          <div className="flex-none bg-white border border-slate-200 rounded-xl shadow-sm p-4">
+             <div className="flex justify-between items-center border-b border-slate-100 pb-2 mb-3">
+                <h3 className="text-xs sm:text-sm font-bold text-slate-800">Agent Core Pipeline</h3>
+                <div className="flex space-x-3">
+                  <div className="flex items-center space-x-1.5 text-[10px] font-semibold">
                     <span className="text-amber-500">WARN:</span>
-                    <input type="number" value={warningThreshold} onChange={(e) => setWarningThreshold(Number(e.target.value))} className="w-14 bg-slate-50 border border-slate-200 rounded px-2 py-1 text-slate-700" />
+                    <input type="number" value={warningThreshold} onChange={(e) => setWarningThreshold(Number(e.target.value))} className="w-12 bg-slate-50 border border-slate-200 rounded px-1.5 py-0.5 text-slate-700 focus:outline-none focus:border-indigo-300" />
                   </div>
-                  <div className="flex items-center space-x-2 text-[11px] font-semibold">
+                  <div className="flex items-center space-x-1.5 text-[10px] font-semibold">
                     <span className="text-red-500">CRIT:</span>
-                    <input type="number" value={criticalThreshold} onChange={(e) => setCriticalThreshold(Number(e.target.value))} className="w-14 bg-slate-50 border border-slate-200 rounded px-2 py-1 text-slate-700" />
+                    <input type="number" value={criticalThreshold} onChange={(e) => setCriticalThreshold(Number(e.target.value))} className="w-12 bg-slate-50 border border-slate-200 rounded px-1.5 py-0.5 text-slate-700 focus:outline-none focus:border-indigo-300" />
                   </div>
                 </div>
              </div>
              <AgentPipeline activeIndex={activeAgentIndex} messages={pipelineMessages} />
           </div>
 
-          {/* Dispatch & Signage */}
-          <div className="flex gap-4 h-32">
-            <div className="flex-1 bg-white border border-slate-200 rounded-xl shadow-sm p-4 flex flex-col">
-              <div className="flex items-center space-x-2 mb-3 text-slate-500">
-                <MonitorPlay size={14} />
-                <h3 className="text-xs font-bold tracking-wider">SIGNAGE HUB</h3>
+          {/* New GateMonitor Widget */}
+          <div className="flex-none max-h-[220px]">
+             <GateMonitor gates={eventData.gates} gateMetrics={gateMetrics} />
+          </div>
+
+          {/* Dispatch & Signage (Fixed Height) */}
+          <div className="flex-none flex gap-4 h-32">
+            <div className="flex-1 bg-white border border-slate-200 rounded-xl shadow-sm p-3 flex flex-col min-w-0">
+              <div className="flex items-center space-x-2 mb-2 text-slate-500">
+                <MonitorPlay size={12} />
+                <h3 className="text-[10px] font-bold tracking-wider">SIGNAGE</h3>
               </div>
-              <div className="flex-1 bg-slate-900 rounded-lg p-2 flex items-center justify-center">
-                <p className="text-amber-400 font-mono text-center font-bold text-xs uppercase animate-pulse">
+              <div className="flex-1 bg-slate-900 rounded-lg p-2 flex items-center justify-center overflow-hidden">
+                <p className="text-amber-400 font-mono text-center font-bold text-[10px] uppercase leading-tight animate-pulse">
                   {activeSignage}
                 </p>
               </div>
             </div>
 
-            <div className="flex-1 bg-white border border-slate-200 rounded-xl shadow-sm p-4 flex flex-col">
-              <div className="flex items-center space-x-2 mb-3 text-slate-500">
-                <ShieldAlert size={14} />
-                <h3 className="text-xs font-bold tracking-wider">DISPATCH</h3>
+            <div className="flex-1 bg-white border border-slate-200 rounded-xl shadow-sm p-3 flex flex-col min-w-0">
+              <div className="flex items-center space-x-2 mb-2 text-slate-500">
+                <ShieldAlert size={12} />
+                <h3 className="text-[10px] font-bold tracking-wider">DISPATCH</h3>
               </div>
-              <div className="flex-1 space-y-2 overflow-y-auto">
+              <div className="flex-1 space-y-1.5 overflow-y-auto pr-1">
                 {dispatchRoster.map(unit => (
-                  <div key={unit.id} className="bg-slate-50 border border-slate-100 rounded p-2 flex justify-between items-center">
-                    <span className="text-[11px] font-bold text-slate-700">{unit.id}</span>
+                  <div key={unit.id} className="bg-slate-50 border border-slate-100 rounded p-1.5 flex justify-between items-center">
+                    <span className="text-[10px] font-bold text-slate-700">{unit.id}</span>
                     <div className="text-right">
-                      <div className={`text-[10px] font-semibold ${unit.status.includes('Red') ? 'text-red-600' : 'text-indigo-600'}`}>{unit.status}</div>
-                      <div className="text-[9px] text-slate-500">{unit.zone}</div>
+                      <div className={`text-[9px] font-semibold truncate max-w-[80px] ${unit.status.includes('Red') ? 'text-red-600' : 'text-indigo-600'}`}>{unit.status}</div>
+                      <div className="text-[8px] text-slate-500 truncate max-w-[80px]">{unit.zone}</div>
                     </div>
                   </div>
                 ))}
@@ -217,8 +277,8 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Terminal */}
-          <div className="flex-1 bg-slate-900 rounded-xl shadow-sm overflow-hidden flex flex-col min-h-[200px]">
+          {/* Terminal (Fills remaining height) */}
+          <div className="flex-1 min-h-[150px] bg-slate-900 rounded-xl shadow-sm overflow-hidden flex flex-col">
              <AgentTerminal logs={logs} />
           </div>
 

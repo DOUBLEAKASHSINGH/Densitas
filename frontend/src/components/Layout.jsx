@@ -10,15 +10,19 @@ export default function Layout() {
   const isAuthPage = location.pathname === '/' || location.pathname === '/auth';
 
   if (isAuthPage) {
-    return <Outlet />;
+    return (
+      <div className="h-screen w-screen flex flex-col overflow-hidden bg-slate-50">
+        <Outlet />
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-800 selection:bg-indigo-100">
+    <div className="h-screen w-screen flex flex-col overflow-hidden bg-slate-50 font-sans text-slate-800 selection:bg-indigo-100">
       
-      {/* Global Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      {/* Global Header (Fixed Height) */}
+      <header className="flex-none bg-white border-b border-slate-200 z-50 shadow-sm h-16">
+        <div className="max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
           
           {/* Logo */}
           <div className="flex items-center space-x-2 cursor-pointer" onClick={() => navigate('/dashboard')}>
@@ -43,16 +47,16 @@ export default function Layout() {
         </div>
       </header>
 
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-h-0 relative">
+      {/* Main Content Area (Fills remaining height perfectly) */}
+      <main className="flex-1 min-h-0 overflow-hidden relative">
         <Outlet />
       </main>
 
-      {/* Global Footer */}
-      <footer className="bg-white border-t border-slate-200 py-6 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center text-xs text-slate-500">
+      {/* Global Footer (Fixed Height) */}
+      <footer className="flex-none bg-white border-t border-slate-200 py-3 h-12">
+        <div className="max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-8 h-full flex flex-row justify-between items-center text-xs text-slate-500">
           <div>&copy; 2026 OptiFlow Systems. All rights reserved.</div>
-          <div className="flex items-center space-x-6 mt-4 md:mt-0">
+          <div className="flex items-center space-x-6">
              <div className="flex items-center space-x-2">
                <span className="w-2 h-2 rounded-full bg-green-500"></span>
                <span>Status: Operational</span>

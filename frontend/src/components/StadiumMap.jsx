@@ -1,25 +1,34 @@
-import React from 'react';
-import { MapContainer, TileLayer, CircleMarker, Popup, Polyline, Tooltip } from 'react-leaflet';
+import React, { useEffect } from 'react';
+import { MapContainer, TileLayer, CircleMarker, Popup, Polyline, Tooltip, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 
-const DEFAULT_CENTER = [17.4727, 78.3725];
+// Component to dynamically update map center when props change
+function ChangeView({ center, zoom }) {
+  const map = useMap();
+  useEffect(() => {
+    map.setView(center, zoom);
+  }, [center, zoom, map]);
+  return null;
+}
 
 const ZONE_COORDS = {
-  'A': [17.4730, 78.3725], // Hall 1
-  'B': [17.4724, 78.3728], // Hall 2
-  'C': [17.4724, 78.3722], // Hall 3
-  'D': [17.4735, 78.3725], // Open Arena
+  'A': [0.0003, -0.0000], 
+  'B': [-0.0003, 0.0003], 
+  'C': [-0.0003, -0.0003], 
+  'D': [0.0008, 0.0000], 
 };
 
 const EXIT_COORDS = {
-  'A': [17.4735, 78.3715],
-  'B': [17.4715, 78.3735],
-  'C': [17.4715, 78.3715],
-  'D': [17.4740, 78.3730],
+  'A': [0.0008, -0.0010],
+  'B': [-0.0012, 0.0010],
+  'C': [-0.0012, -0.0010],
+  'D': [0.0013, 0.0005],
 };
 
-export default function StadiumMap({ zoneStates, customZoom = 17 }) {
-  const mapCenter = DEFAULT_CENTER;
+export default function StadiumMap({ zoneStates, dynamicCenter, customZoom = 17 }) {
+  
+  // Fallback to HITEX if no center provided
+  const mapCenter = dynamicCenter || [17.4727, 78.3725];
 
   const getColor = (capacityPct) => {
     if (capacityPct > 85) return '#ef4444'; // Red-500
@@ -33,15 +42,16 @@ export default function StadiumMap({ zoneStates, customZoom = 17 }) {
 
   return (
     <div className="h-full w-full rounded-xl overflow-hidden relative z-0">
-      <MapContainer key={mapCenter.join(',')} center={mapCenter} zoom={customZoom} className="h-full w-full bg-slate-50" zoomControl={false}>
+      <MapContainer center={mapCenter} zoom={customZoom} className="h-full w-full bg-slate-50" zoomControl={false}>
+        <ChangeView center={mapCenter} zoom={customZoom} />
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://carto.com/">CARTO</a>'
         />
 
-        {/* Center Stage Marker */}
+        {/* Main Control Center Marker */}
         <CircleMarker
-          center={DEFAULT_CENTER}
+          center={mapCenter}
           radius={8}
           pathOptions={{ color: '#4f46e5', fillColor: '#4f46e5', fillOpacity: 0.8, weight: 3 }}
         >
@@ -50,24 +60,30 @@ export default function StadiumMap({ zoneStates, customZoom = 17 }) {
           </Popup>
         </CircleMarker>
 
-        {Object.entries(EXIT_COORDS).map(([exitId, coords]) => (
-          <CircleMarker
-            key={`exit-${exitId}`}
-            center={coords}
-            radius={10}
-            pathOptions={{ color: '#10b981', fillColor: '#10b981', fillOpacity: 0.9, weight: 2, dashArray: "4 4" }}
-          >
-            <Popup>
-              <div className="text-xs font-semibold text-green-700">EXIT {exitId} (SAFE)</div>
-            </Popup>
-          </CircleMarker>
-        ))}
+        {Object.entries(EXIT_COORDS).map(([exitId, offset]) => {
+          const coords = [mapCenter[0] + offset[0], mapCenter[1] + offset[1]];
+          return (
+            <CircleMarker
+              key={`exit-${exitId}`}
+              center={coords}
+              radius={10}
+              pathOptions={{ color: '#10b981', fillColor: '#10b981', fillOpacity: 0.9, weight: 2, dashArray: "4 4" }}
+            >
+              <Popup>
+                <div className="text-xs font-semibold text-green-700">EXIT {exitId} (SAFE)</div>
+              </Popup>
+            </CircleMarker>
+          );
+        })}
         
         {Object.entries(zoneStates).map(([zoneId, data]) => {
           const cap = data.current_capacity_pct;
           const isCongested = cap > 85;
-          const zoneCoord = ZONE_COORDS[zoneId] || DEFAULT_CENTER;
-          const exitCoord = EXIT_COORDS[zoneId]; 
+          const offset = ZONE_COORDS[zoneId] || [0,0];
+          const zoneCoord = [mapCenter[0] + offset[0], mapCenter[1] + offset[1]];
+          const exitOffset = EXIT_COORDS[zoneId] || [0,0];
+          const exitCoord = [mapCenter[0] + exitOffset[0], mapCenter[1] + exitOffset[1]];
+          
           const areaName = data.meta_area || `Zone ${zoneId}`;
 
           return (
