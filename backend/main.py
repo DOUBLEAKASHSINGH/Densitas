@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import joblib
 import numpy as np
+import pandas as pd
 from datetime import datetime
 
 # Load ML Models Globally
@@ -212,3 +213,72 @@ async def websocket_endpoint(websocket: WebSocket):
             await websocket.receive_text()
     except WebSocketDisconnect:
         manager.disconnect(websocket)
+
+# ----------------------------------------------------------------
+# CSV HISTORICAL DATA STREAMING ENGINE
+# ----------------------------------------------------------------
+csv_data = pd.DataFrame()
+try:
+    csv_data = pd.read_csv('historical_telemetry.csv')
+    print(f"SUCCESS: Loaded {len(csv_data)} rows from historical CSV.")
+except Exception as e:
+    print(f"WARNING: Could not load historical_telemetry.csv: {e}")
+
+async def csv_stream_worker():
+    if csv_data.empty:
+        print("CSV streaming disabled (no data).")
+        return
+        
+    print("Started CSV background streaming task...")
+    
+    # Map the raw CSV zones to specific venue metadata required by the payload
+    csv_meta = {
+        "Hall 1": {"id": "HITEX-H1", "max": 2000, "venue": "Pharma Expo", "loc": "Hall 1"},
+        "Hall 2": {"id": "HITEX-H2", "max": 1500, "venue": "Pharma Expo", "loc": "Hall 2"},
+        "Hall 3": {"id": "HITEX-H3", "max": 2500, "venue": "Pharma Expo", "loc": "Hall 3"},
+        "Open Arena": {"id": "BH-OA", "max": 5000, "venue": "Harris Jayaraj", "loc": "Open Arena"}
+    }
+    
+    idx = 0
+    while True:
+        try:
+            row = csv_data.iloc[idx]
+            zone = row['zone_id']
+            meta = csv_meta.get(zone, csv_meta["Hall 1"])
+            
+            # Construct standard payload from CSV row
+            payload = TelemetryPayload(
+                venue=meta["venue"],
+                zone_id=zone,  # Pass the raw CSV zone_id for the ML model directly
+                location_name=meta["loc"],
+                headcount=int(row['current_count']),
+                max_capacity=meta["max"],
+                flow_rate=float(row['flow_rate'])
+            )
+            
+            # Run the deterministic multi-agent pipeline
+            current_density = density_agent.process(payload)
+            predicted_density, confidence = prediction_agent.process(payload, current_density)
+            decision = decision_agent.process(payload.location_name, current_density, predicted_density)
+            
+            frontend_packet = alert_agent.serialize(payload, current_density, predicted_density, decision)
+            if confidence > 0.0:
+                frontend_packet["agent_log"] += f" (Confidence: ±{confidence}%)"
+                
+            # Broadcast globally to all connected dashboards
+            if len(manager.active_connections) > 0:
+                await manager.broadcast(frontend_packet)
+            
+            # Loop mechanism
+            idx += 1
+            if idx >= len(csv_data):
+                idx = 0
+                
+        except Exception as e:
+            print(f"CSV Stream Error: {e}")
+            
+        await asyncio.sleep(2.0)
+
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(csv_stream_worker())
