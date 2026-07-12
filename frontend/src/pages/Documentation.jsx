@@ -43,6 +43,19 @@ export default function Documentation() {
             </p>
           </section>
 
+          {/* System Architecture Overview */}
+          <section>
+            <h2 className="text-2xl font-bold text-slate-900 mb-4 border-b border-slate-100 pb-2">
+              System Architecture Overview
+            </h2>
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 w-full max-w-4xl mx-auto my-8">
+              <img src="/optiflow-architecture.png" alt="OptiFlow Architecture" className="w-full h-auto object-contain" />
+              <p className="text-sm text-center text-slate-500 mt-4 px-4">
+                The diagram above details the complete end-to-end data flow: from initial edge IoT telemetry ingestion, through the decoupled offline XGBoost training and live inference pipelines, down to the WebSocket stream powering the React dashboard.
+              </p>
+            </div>
+          </section>
+
           {/* Machine Learning Pipeline */}
           <section>
             <h2 className="text-2xl font-bold text-slate-900 mb-4 border-b border-slate-100 pb-2 flex items-center">

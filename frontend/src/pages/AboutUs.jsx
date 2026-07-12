@@ -85,51 +85,8 @@ export default function AboutUs() {
             </p>
           </div>
 
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
-            
-            {/* Step 1 */}
-            <div className="flex-1 w-full bg-slate-50 border border-slate-200 p-6 rounded-xl text-center relative shadow-sm">
-              <Cpu className="mx-auto text-slate-700 mb-4" size={32} />
-              <h4 className="font-bold text-slate-900 mb-2">1. Edge Sensors</h4>
-              <p className="text-sm text-slate-500">C++ IoT nodes parse raw camera and LiDAR telemetry locally to ensure memory-safe operation.</p>
-            </div>
-            
-            {/* Arrow */}
-            <div className="hidden lg:flex flex-col items-center justify-center text-indigo-400">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-            </div>
-
-            {/* Step 2 */}
-            <div className="flex-1 w-full bg-slate-50 border border-slate-200 p-6 rounded-xl text-center relative shadow-sm">
-              <Server className="mx-auto text-slate-700 mb-4" size={32} />
-              <h4 className="font-bold text-slate-900 mb-2">2. FastAPI Backend</h4>
-              <p className="text-sm text-slate-500">Asynchronous Python runtime ingests heavy JSON payloads and terminates secure MQTT/WSS bridges.</p>
-            </div>
-
-            {/* Arrow */}
-            <div className="hidden lg:flex flex-col items-center justify-center text-indigo-400">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-            </div>
-
-            {/* Step 3 */}
-            <div className="flex-1 w-full bg-slate-50 border border-slate-200 p-6 rounded-xl text-center relative shadow-sm border-b-4 border-b-indigo-500">
-              <Zap className="mx-auto text-indigo-600 mb-4" size={32} />
-              <h4 className="font-bold text-slate-900 mb-2">3. Agent Orchestration</h4>
-              <p className="text-sm text-slate-500">Density calculation, XGBoost prediction, and strict rule engines apply deterministic safety bounds.</p>
-            </div>
-
-            {/* Arrow */}
-            <div className="hidden lg:flex flex-col items-center justify-center text-indigo-400">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-            </div>
-
-            {/* Step 4 */}
-            <div className="flex-1 w-full bg-indigo-600 border border-indigo-700 p-6 rounded-xl text-center relative shadow-lg">
-              <Network className="mx-auto text-white mb-4" size={32} />
-              <h4 className="font-bold text-white mb-2">4. React Dashboard</h4>
-              <p className="text-sm text-indigo-100">Live WebSockets push autonomous alert payloads to the Tailwind UI for instant command execution.</p>
-            </div>
-
+          <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 w-full max-w-4xl mx-auto">
+            <img src="/optiflow-architecture.png" alt="OptiFlow Architecture" className="w-full h-auto object-contain" />
           </div>
         </div>
       </div>
