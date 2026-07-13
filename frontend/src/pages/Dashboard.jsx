@@ -8,11 +8,12 @@ import GateMonitor from '../components/GateMonitor';
 import DispatchPanel from '../components/DispatchPanel';
 import { useLocationContext } from '../contexts/LocationContext';
 import { useTelemetryContext } from '../contexts/TelemetryContext';
-import { ArrowLeft, Users, TrendingUp, AlertTriangle, ShieldCheck, DoorOpen, Radio } from 'lucide-react';
+import { ArrowLeft, Users, TrendingUp, AlertTriangle, ShieldCheck, DoorOpen, Radio, ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { eventData } = useLocationContext();
+  const [showTechnical, setShowTechnical] = useState(false);
 
   useEffect(() => {
     if (!eventData) {
@@ -165,68 +166,80 @@ export default function Dashboard() {
 
         </div>
 
-        {/* 3. Interactive Venue Map & 4. Occupancy Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-2 overflow-hidden flex flex-col h-[500px]">
-            <div className="px-4 pt-3 pb-2 flex justify-between items-center bg-white z-10">
-              <h3 className="text-sm font-bold text-slate-800">Live Interactive Venue Map</h3>
-              <span className="px-2 py-1 bg-indigo-50 text-indigo-700 text-[10px] font-bold rounded uppercase tracking-wider">Live View</span>
-            </div>
-            <div className="flex-1 relative rounded-xl overflow-hidden border border-slate-100">
-               <StadiumMap zoneStates={zoneStates} />
-            </div>
+        {/* 3. Interactive Venue Map */}
+        <div className="w-full bg-white rounded-2xl shadow-sm border border-slate-200 p-2 overflow-hidden flex flex-col h-[600px]">
+          <div className="px-4 pt-3 pb-2 flex justify-between items-center bg-white z-10">
+            <h3 className="text-sm font-bold text-slate-800">Live Interactive Venue Map</h3>
+            <span className="px-2 py-1 bg-indigo-50 text-indigo-700 text-[10px] font-bold rounded uppercase tracking-wider">Live View</span>
           </div>
+          <div className="flex-1 relative rounded-xl overflow-hidden border border-slate-100">
+             <StadiumMap zoneStates={zoneStates} />
+          </div>
+        </div>
 
-          <div className="lg:col-span-1 bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col h-[500px]">
-            <h3 className="text-sm font-bold text-slate-800 mb-4">Venue Occupancy Trends</h3>
-            <div className="flex-1 min-h-0">
-               <OccupancyChart chartData={chartData} />
-            </div>
+        {/* 4. Occupancy Charts */}
+        <div className="w-full bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col h-[400px]">
+          <h3 className="text-sm font-bold text-slate-800 mb-4">Venue Occupancy Trends</h3>
+          <div className="flex-1 min-h-0">
+             <OccupancyChart chartData={chartData} />
           </div>
         </div>
 
         {/* 5. Gate Monitoring & Security Deployment */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col h-[400px]">
-            <GateMonitor gates={eventData.gates} gateMetrics={gateMetrics} />
-          </div>
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col h-[400px]">
             <DispatchPanel activeSignage={activeSignage} dispatchRoster={dispatchRoster} />
           </div>
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col h-[400px]">
+            <GateMonitor gates={eventData.gates} gateMetrics={gateMetrics} />
+          </div>
         </div>
 
-        {/* 6. Agent Logic & Event Logs */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col h-[450px]">
-             <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
-                <h3 className="text-sm font-bold text-slate-800">AI Decision Workflow</h3>
-                <div className="flex space-x-3">
-                  <div className="flex items-center space-x-2 text-xs font-semibold">
-                    <span className="text-orange-500 uppercase">Warn:</span>
-                    <input type="number" value={warningThreshold} onChange={(e) => setWarningThreshold(Number(e.target.value))} className="w-14 bg-slate-50 border border-slate-200 rounded px-2 py-1 text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
-                  </div>
-                  <div className="flex items-center space-x-2 text-xs font-semibold">
-                    <span className="text-red-500 uppercase">Crit:</span>
-                    <input type="number" value={criticalThreshold} onChange={(e) => setCriticalThreshold(Number(e.target.value))} className="w-14 bg-slate-50 border border-slate-200 rounded px-2 py-1 text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
-                  </div>
-                </div>
-             </div>
-             <div className="flex-1 overflow-hidden">
-               <AgentPipeline activeIndex={activeAgentIndex} messages={pipelineMessages} />
-             </div>
-          </div>
-
-          <div className="bg-slate-900 rounded-2xl shadow-sm border border-slate-800 flex flex-col h-[450px] overflow-hidden">
-             <div className="px-5 py-3 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
-               <h3 className="text-sm font-bold text-slate-300 flex items-center"><Radio size={14} className="mr-2 text-emerald-400" /> Live Event Activity</h3>
-             </div>
-             <div className="flex-1 min-h-0">
-               <AgentTerminal logs={logs} />
-             </div>
-          </div>
-
+        {/* 6. Technical / Engineering View Toggle */}
+        <div className="w-full">
+          <button 
+            onClick={() => setShowTechnical(!showTechnical)}
+            className="w-full py-4 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl flex items-center justify-center space-x-2 text-slate-600 transition-colors font-bold text-sm"
+          >
+            <span>{showTechnical ? 'Hide Technical Diagnostics' : 'Show Technical Diagnostics'}</span>
+            {showTechnical ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+          </button>
         </div>
+
+        {/* 7. Collapsible Agent Logic & Event Logs */}
+        {showTechnical && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2">
+            
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col h-[450px]">
+               <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
+                  <h3 className="text-sm font-bold text-slate-800">AI Decision Workflow</h3>
+                  <div className="flex space-x-3">
+                    <div className="flex items-center space-x-2 text-xs font-semibold">
+                      <span className="text-orange-500 uppercase">Warn:</span>
+                      <input type="number" value={warningThreshold} onChange={(e) => setWarningThreshold(Number(e.target.value))} className="w-14 bg-slate-50 border border-slate-200 rounded px-2 py-1 text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+                    </div>
+                    <div className="flex items-center space-x-2 text-xs font-semibold">
+                      <span className="text-red-500 uppercase">Crit:</span>
+                      <input type="number" value={criticalThreshold} onChange={(e) => setCriticalThreshold(Number(e.target.value))} className="w-14 bg-slate-50 border border-slate-200 rounded px-2 py-1 text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+                    </div>
+                  </div>
+               </div>
+               <div className="flex-1 overflow-hidden">
+                 <AgentPipeline activeIndex={activeAgentIndex} messages={pipelineMessages} />
+               </div>
+            </div>
+  
+            <div className="bg-slate-900 rounded-2xl shadow-sm border border-slate-800 flex flex-col h-[450px] overflow-hidden">
+               <div className="px-5 py-3 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
+                 <h3 className="text-sm font-bold text-slate-300 flex items-center"><Radio size={14} className="mr-2 text-emerald-400" /> Live Event Activity</h3>
+               </div>
+               <div className="flex-1 min-h-0">
+                 <AgentTerminal logs={logs} />
+               </div>
+            </div>
+  
+          </div>
+        )}
 
       </div>
     </div>
