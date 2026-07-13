@@ -15,7 +15,7 @@ export default function Layout() {
   // Footer state removed for standard document flow
 
   const { currentUser } = useAuth();
-  const { clearEventData } = useLocationContext();
+  const { clearEventData, eventData } = useLocationContext();
 
   // Don't show header/footer on Auth Wall
   const isAuthPage = location.pathname === '/' || location.pathname === '/auth' || location.pathname === '/profile';
@@ -77,6 +77,19 @@ export default function Layout() {
           <div className="flex items-center space-x-4">
             
             {/* Notification Bell */}
+            {eventData && (
+              <button
+                onClick={() => {
+                  clearEventData();
+                  navigate('/select-location');
+                }}
+                className="flex items-center text-xs font-semibold text-slate-500 hover:text-indigo-600 transition-colors mr-2 cursor-pointer"
+              >
+                <MapPin size={16} className="mr-1" />
+                Change Event
+              </button>
+            )}
+
             <div className="relative">
               <button 
                 onClick={() => {
