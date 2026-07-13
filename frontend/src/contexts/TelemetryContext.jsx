@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { useLocationContext } from './LocationContext';
 import { useWebSocket } from '../hooks/useWebSocket';
 
@@ -27,6 +27,7 @@ export function TelemetryProvider({ children }) {
 
   const [zoneStates, setZoneStates] = useState({});
   const [chartData, setChartData] = useState([]);
+  const chartBufferRef = useRef([]);
   const [logs, setLogs] = useState([]);
   
   const [activeAgentIndex, setActiveAgentIndex] = useState(-1);
@@ -96,10 +97,7 @@ export function TelemetryProvider({ children }) {
       }
     }));
 
-    setChartData(prevData => {
-      const newIncomingPacket = { time: timeStr, current: targetCap, predicted: predictedCap, zone: targetZone };
-      return [...prevData, newIncomingPacket].slice(-50);
-    });
+    chartBufferRef.current.push({ time: timeStr, current: targetCap, predicted: predictedCap, zone: targetZone });
 
     setLogs(prev => {
       const newLogs = [...prev, { timestamp, zone_id: targetZone, action: internalAction, cap: Math.round(targetCap) }];
@@ -126,6 +124,32 @@ export function TelemetryProvider({ children }) {
 
   // Hook handles connection state independently
   const wsStatus = useWebSocket(eventData, handleIncomingPacket);
+
+  // 3-Second Graph Buffering Interval
+  useEffect(() => {
+    const chartInterval = setInterval(() => {
+      if (chartBufferRef.current.length > 0) {
+        const buffer = chartBufferRef.current;
+        const avgCurrent = buffer.reduce((sum, p) => sum + p.current, 0) / buffer.length;
+        const avgPredicted = buffer.reduce((sum, p) => sum + p.predicted, 0) / buffer.length;
+        const latest = buffer[buffer.length - 1];
+        
+        setChartData(prevData => {
+          const newPoint = { 
+            time: latest.time, 
+            current: avgCurrent, 
+            predicted: avgPredicted, 
+            zone: latest.zone 
+          };
+          return [...prevData, newPoint].slice(-50);
+        });
+        
+        chartBufferRef.current = [];
+      }
+    }, 3000);
+
+    return () => clearInterval(chartInterval);
+  }, []);
 
   // Simulate purely localized gate telemetry for the GateMonitor visualization
   useEffect(() => {
