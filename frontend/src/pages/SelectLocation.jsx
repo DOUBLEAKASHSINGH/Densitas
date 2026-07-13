@@ -88,9 +88,9 @@ export default function SelectLocation() {
         
         // Transform incoming BookMyShow payload into Dashboard format
         const fetchedEvents = (data.events || []).map(evt => {
-          // Normalize venue name for matching (e.g. "HITEX Exhibition Centre" -> "hitex-exhibition-centre")
-          const normalizedVenueName = evt.venue.toLowerCase().replace(/\s+/g, '-');
-          const exactConfig = VENUE_CONFIG[normalizedVenueName];
+          const baseVenueName = evt.venue.toLowerCase().replace(/\s+/g, '-');
+          const citySpecificVenueName = `${baseVenueName}-${city.toLowerCase().replace(/\s+/g, '-')}`;
+          const exactConfig = VENUE_CONFIG[citySpecificVenueName] || VENUE_CONFIG[baseVenueName];
 
           return {
             id: evt.name.replace(/\s+/g, '-').toLowerCase(),

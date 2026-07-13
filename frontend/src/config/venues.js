@@ -185,7 +185,7 @@ export const VENUE_CONFIG = {
       { id: 'North Evacuation', path: [[17.4375, 78.3440], [17.4380, 78.3440], [17.4385, 78.3440], [17.4395, 78.3440]] }
     ]
   },
-  "pharma-expo": {
+  "pharma-expo-jaipur": {
     id: "jaipur-jecc",
     name: "Jaipur Exhibition & Convention Centre",
     city: "Jaipur",
@@ -232,6 +232,55 @@ export const VENUE_CONFIG = {
     },
     routes: [
       { id: 'Main Evac Route', path: [[26.7875, 75.8340], [26.7880, 75.8340], [26.7890, 75.8340]] }
+    ]
+  },
+  "pharma-expo-ahmedabad": {
+    id: "ahmedabad-gucec",
+    name: "Gujarat University Convention and Exhibition Centre",
+    city: "Ahmedabad",
+    centerLat: 23.0429,
+    centerLng: 72.5487,
+    defaultZoom: 17,
+    polygon: [
+      [23.0440, 72.5475], [23.0440, 72.5500], [23.0420, 72.5500], [23.0420, 72.5475]
+    ],
+    zones: {
+      'A': { lat: 23.0435, lng: 72.5480, name: 'Main Hall A' },
+      'B': { lat: 23.0435, lng: 72.5490, name: 'Main Hall B' },
+      'C': { lat: 23.0425, lng: 72.5480, name: 'Conference Wing' },
+      'D': { lat: 23.0425, lng: 72.5490, name: 'Outdoor Arena' }
+    },
+    gates: [
+      { id: 'Main Entrance (West)', lat: 23.0430, lng: 72.5475, type: 'primary' },
+      { id: 'Service Gate (East)', lat: 23.0430, lng: 72.5500, type: 'secondary' }
+    ],
+    exits: {
+      'A': { lat: 23.0440, lng: 72.5480 },
+      'B': { lat: 23.0440, lng: 72.5490 },
+      'C': { lat: 23.0420, lng: 72.5480 },
+      'D': { lat: 23.0420, lng: 72.5490 }
+    },
+    emergencyExits: [
+      { id: 'Emergency NW', lat: 23.0440, lng: 72.5475 },
+      { id: 'Emergency SE', lat: 23.0420, lng: 72.5500 }
+    ],
+    assemblyPoints: [
+      { id: 'Safe Zone West', lat: 23.0430, lng: 72.5460 }
+    ],
+    medicalStations: [
+      { id: 'Medical Wing', lat: 23.0425, lng: 72.5478 }
+    ],
+    securityRooms: [
+      { id: 'Security Hub', lat: 23.0435, lng: 72.5485 }
+    ],
+    reroutes: {
+      'A': [[23.0435, 72.5480], [23.0438, 72.5480], [23.0440, 72.5480]],
+      'B': [[23.0435, 72.5490], [23.0438, 72.5490], [23.0440, 72.5490]],
+      'C': [[23.0425, 72.5480], [23.0422, 72.5480], [23.0420, 72.5480]],
+      'D': [[23.0425, 72.5490], [23.0422, 72.5490], [23.0420, 72.5490]]
+    },
+    routes: [
+      { id: 'Main Evac Route', path: [[23.0435, 72.5480], [23.0430, 72.5475], [23.0430, 72.5460]] }
     ]
   }
 };
