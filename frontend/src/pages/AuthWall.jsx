@@ -33,12 +33,8 @@ export default function AuthWall() {
         }
       }
       
-      // On success, navigate to dashboard if returning, or onboarding if new
-      if (localStorage.getItem('optiflow_active_venue')) {
-        navigate('/dashboard');
-      } else {
-        navigate('/select-location');
-      }
+      // On success, strictly navigate to the location selector
+      navigate('/select-location');
     } catch (err) {
       console.error(err);
       if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {

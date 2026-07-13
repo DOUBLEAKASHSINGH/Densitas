@@ -9,11 +9,13 @@ import Documentation from './pages/Documentation';
 
 import GenericContentPage from './pages/GenericContentPage';
 import { AuthProvider } from './components/AuthContext';
+import { LocationProvider } from './components/LocationContext';
 
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
+      <LocationProvider>
+        <BrowserRouter>
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<AuthWall />} />
@@ -46,6 +48,7 @@ function App() {
         </Route>
       </Routes>
     </BrowserRouter>
+    </LocationProvider>
     </AuthProvider>
   );
 }

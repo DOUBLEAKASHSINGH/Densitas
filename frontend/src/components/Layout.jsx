@@ -4,6 +4,7 @@ import { Activity, User, LogOut, Trash2, Settings, Bell, X, MapPin } from 'lucid
 import { auth } from '../firebase';
 import { signOut, deleteUser } from 'firebase/auth';
 import { useAuth } from './AuthContext';
+import { useLocationContext } from './LocationContext';
 
 export default function Layout() {
   const navigate = useNavigate();
@@ -13,12 +14,14 @@ export default function Layout() {
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(true);
 
   const { currentUser } = useAuth();
+  const { clearEventData } = useLocationContext();
 
   // Don't show header/footer on Auth Wall
   const isAuthPage = location.pathname === '/' || location.pathname === '/auth';
 
   const handleLogout = async () => {
     setIsProfileOpen(false);
+    clearEventData();
     try {
       await signOut(auth);
       navigate('/');

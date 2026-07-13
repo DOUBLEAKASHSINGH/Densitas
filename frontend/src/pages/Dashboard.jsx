@@ -6,23 +6,11 @@ import AgentTerminal from '../components/AgentTerminal';
 import AgentPipeline from '../components/AgentPipeline';
 import GateMonitor from '../components/GateMonitor';
 import { ActivitySquare, MonitorPlay, ShieldAlert, ArrowLeft, Shield } from 'lucide-react';
+import { useLocationContext } from '../components/LocationContext';
 
 export default function Dashboard() {
-  const routerLocation = useLocation();
   const navigate = useNavigate();
-  
-  const getEventData = () => {
-    if (routerLocation.state?.eventData) return routerLocation.state.eventData;
-    try {
-      const stored = localStorage.getItem('optiflow_active_venue');
-      return stored ? JSON.parse(stored) : null;
-    } catch (err) {
-      console.error("Failed to parse local storage venue data", err);
-      return null;
-    }
-  };
-  
-  const eventData = getEventData();
+  const { eventData } = useLocationContext();
 
   useEffect(() => {
     if (!eventData) {

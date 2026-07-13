@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Calendar, ArrowRight, AlertTriangle, Building, Globe, TestTube2, RefreshCw, Loader2 } from 'lucide-react';
+import { useLocationContext } from '../components/LocationContext';
 
 const INDIA_LOCATION_MATRIX = {
   "Andhra Pradesh": ["Visakhapatnam", "Vijayawada", "Guntur", "Nellore"],
@@ -53,6 +54,8 @@ export default function SelectLocation() {
   const [isLoadingEvents, setIsLoadingEvents] = useState(false);
   const [isError, setIsError] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState('');
+  
+  const { setEventData } = useLocationContext();
 
   // Dropdowns based on local state
   const countries = ["India"];
@@ -122,8 +125,8 @@ export default function SelectLocation() {
       } catch (e) {
         console.error("Failed to update backend session", e);
       }
-      localStorage.setItem('optiflow_active_venue', JSON.stringify(activeEvent));
-      navigate('/dashboard', { state: { eventData: activeEvent } });
+      setEventData(activeEvent);
+      navigate('/dashboard');
     }
   };
 
@@ -151,8 +154,8 @@ export default function SelectLocation() {
     } catch (e) {
       console.error("Failed to update backend session", e);
     }
-    localStorage.setItem('optiflow_active_venue', JSON.stringify(sandboxEvent));
-    navigate('/dashboard', { state: { eventData: sandboxEvent } });
+    setEventData(sandboxEvent);
+    navigate('/dashboard');
   };
 
   return (
