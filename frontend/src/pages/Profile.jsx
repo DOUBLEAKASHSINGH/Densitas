@@ -18,9 +18,9 @@ export default function Profile() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (auth.currentUser) {
-      setDisplayName(auth.currentUser.displayName || '');
-      setPhotoURL(auth.currentUser.photoURL || '');
+    if (currentUser) {
+      setDisplayName(currentUser.name || '');
+      setPhotoURL(currentUser.photoURL || '');
     }
   }, [currentUser]);
 

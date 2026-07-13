@@ -29,6 +29,7 @@ export function AuthProvider({ children }) {
           uid: user.uid,
           email: user.email,
           name: name || 'Anonymous User',
+          photoURL: user.photoURL || null
         });
       } else {
         setCurrentUser(null);
