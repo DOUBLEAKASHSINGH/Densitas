@@ -8,7 +8,7 @@ export default function GateMonitor({ gates, gateMetrics }) {
     <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-4 sm:p-5 flex flex-col h-full">
       <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
         <h3 className="text-sm font-bold text-slate-800 flex items-center">
-          <DoorOpen size={16} className="mr-2 text-indigo-500" /> Gate Entry Management
+          <DoorOpen size={16} className="mr-2 text-indigo-500" /> Venue Entry Monitoring
         </h3>
         <div className="flex items-center space-x-1.5 text-xs text-slate-500 font-semibold bg-slate-50 px-2 py-1 rounded">
           <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>

@@ -17,7 +17,7 @@ export default function AgentTerminal({ logs }) {
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800 bg-slate-950/50">
         <div className="flex items-center space-x-2 text-slate-400">
           <Terminal size={14} />
-          <span className="uppercase tracking-widest text-[10px] font-bold">Deterministic Agent Log</span>
+          <span className="uppercase tracking-widest text-[10px] font-bold">Live Event Activity</span>
         </div>
         <div className="flex space-x-1.5">
           <div className="w-2.5 h-2.5 rounded-full bg-slate-700"></div>

@@ -162,54 +162,82 @@ export default function Layout() {
         <Outlet />
       </main>
 
-      {/* Global Footer Overlay */}
-      <footer className={`fixed bottom-0 left-0 w-full z-40 bg-white/80 backdrop-blur-md border-t border-slate-200/50 py-6 transition-transform duration-300 ease-in-out ${showFooter ? 'translate-y-0' : 'translate-y-[100%]'}`}>
-          <div className="w-full px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 text-sm">
-            {/* Column 1 */}
-            <div>
+        <footer className={`fixed bottom-0 left-0 w-full z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/50 py-8 transition-transform duration-300 ease-in-out ${showFooter ? 'translate-y-0' : 'translate-y-[100%]'}`}>
+          <div className="w-full px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-5 gap-8 text-sm">
+            
+            {/* Column 1: About OptiFlow */}
+            <div className="md:col-span-1">
               <div className="flex items-center space-x-2 mb-4">
                 <Activity className="text-indigo-600" size={20} />
                 <span className="font-bold text-slate-900">OptiFlow</span>
               </div>
-              <p className="text-slate-500 text-xs mb-4">Spatial intelligence and crowd orchestration for high-density environments.</p>
+              <p className="text-slate-500 text-xs mb-4 leading-relaxed">
+                OptiFlow is an enterprise crowd management platform that leverages live spatial telemetry and predictive AI to prevent critical congestion before it occurs. Built for absolute safety at scale.
+              </p>
               <div className="flex items-center space-x-2 text-xs">
-                 <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                 <span className="text-slate-600">Status: Operational</span>
+                 <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                 <span className="text-slate-600 font-semibold">Status: Operational</span>
               </div>
             </div>
             
-            {/* Column 2 */}
+            {/* Column 2: Platform */}
             <div>
-              <h4 className="font-bold text-slate-900 mb-4">Product</h4>
-              <ul className="space-y-2 text-slate-500 text-xs">
-                <li><span onClick={() => navigate('/features')} className="cursor-pointer hover:text-indigo-600 transition-colors">Features</span></li>
-                <li><span onClick={() => navigate('/integrations')} className="cursor-pointer hover:text-indigo-600 transition-colors">Integrations</span></li>
-                <li><span onClick={() => navigate('/pricing')} className="cursor-pointer hover:text-indigo-600 transition-colors">Pricing</span></li>
+              <h4 className="font-bold text-slate-900 mb-4 uppercase text-[10px] tracking-wider text-slate-400">Platform</h4>
+              <ul className="space-y-2 text-slate-600 text-xs font-medium">
+                <li><span className="cursor-pointer hover:text-indigo-600 transition-colors">Dashboard</span></li>
+                <li><span className="cursor-pointer hover:text-indigo-600 transition-colors">Incident Monitoring</span></li>
+                <li><span className="cursor-pointer hover:text-indigo-600 transition-colors">Predictive Analytics</span></li>
+                <li><span className="cursor-pointer hover:text-indigo-600 transition-colors">Crowd Flow Insights</span></li>
+                <li><span className="cursor-pointer hover:text-indigo-600 transition-colors">Reports</span></li>
+              </ul>
+            </div>
+
+            {/* Column 3: Support */}
+            <div>
+              <h4 className="font-bold text-slate-900 mb-4 uppercase text-[10px] tracking-wider text-slate-400">Support</h4>
+              <ul className="space-y-2 text-slate-600 text-xs font-medium">
+                <li><span className="cursor-pointer hover:text-indigo-600 transition-colors">Documentation</span></li>
+                <li><span className="cursor-pointer hover:text-indigo-600 transition-colors">Deployment Guide</span></li>
+                <li><span className="cursor-pointer hover:text-indigo-600 transition-colors">Contact Support</span></li>
+                <li><span className="cursor-pointer hover:text-indigo-600 transition-colors">FAQs</span></li>
+                <li><span className="cursor-pointer hover:text-indigo-600 transition-colors">Community</span></li>
               </ul>
             </div>
             
-            {/* Column 3 */}
+            {/* Column 4: Technology */}
             <div>
-              <h4 className="font-bold text-slate-900 mb-4">Company</h4>
-              <ul className="space-y-2 text-slate-500 text-xs">
-                <li><span onClick={() => navigate('/about')} className="cursor-pointer hover:text-indigo-600 transition-colors">About Us</span></li>
-                <li><span onClick={() => navigate('/careers')} className="cursor-pointer hover:text-indigo-600 transition-colors">Careers</span></li>
-                <li><span onClick={() => navigate('/blog')} className="cursor-pointer hover:text-indigo-600 transition-colors">Blog</span></li>
+              <h4 className="font-bold text-slate-900 mb-4 uppercase text-[10px] tracking-wider text-slate-400">Technology</h4>
+              <ul className="space-y-2 text-slate-600 text-xs font-medium">
+                <li><span className="cursor-pointer hover:text-indigo-600 transition-colors">React</span></li>
+                <li><span className="cursor-pointer hover:text-indigo-600 transition-colors">FastAPI</span></li>
+                <li><span className="cursor-pointer hover:text-indigo-600 transition-colors">WebSockets</span></li>
+                <li><span className="cursor-pointer hover:text-indigo-600 transition-colors">Leaflet Maps</span></li>
+                <li><span className="cursor-pointer hover:text-indigo-600 transition-colors">Machine Learning</span></li>
+                <li><span className="cursor-pointer hover:text-indigo-600 transition-colors">Edge Computing</span></li>
               </ul>
             </div>
             
-            {/* Column 4 */}
+            {/* Column 5: Company & Legal */}
             <div>
-              <h4 className="font-bold text-slate-900 mb-4">Legal</h4>
-              <ul className="space-y-2 text-slate-500 text-xs">
-                <li><span onClick={() => navigate('/privacy')} className="cursor-pointer hover:text-indigo-600 transition-colors">Privacy Policy</span></li>
-                <li><span onClick={() => navigate('/terms')} className="cursor-pointer hover:text-indigo-600 transition-colors">Terms of Service</span></li>
-                <li><span onClick={() => navigate('/security')} className="cursor-pointer hover:text-indigo-600 transition-colors">Security</span></li>
+              <h4 className="font-bold text-slate-900 mb-4 uppercase text-[10px] tracking-wider text-slate-400">Company</h4>
+              <ul className="space-y-2 text-slate-600 text-xs font-medium mb-6">
+                <li><span className="cursor-pointer hover:text-indigo-600 transition-colors">Project Vision</span></li>
+                <li><span className="cursor-pointer hover:text-indigo-600 transition-colors">Architecture</span></li>
+                <li><span className="cursor-pointer hover:text-indigo-600 transition-colors">GitHub Repository</span></li>
+                <li><span className="cursor-pointer hover:text-indigo-600 transition-colors">Hackathon Project</span></li>
+                <li><span className="cursor-pointer hover:text-indigo-600 transition-colors">Team</span></li>
+              </ul>
+              <h4 className="font-bold text-slate-900 mb-4 uppercase text-[10px] tracking-wider text-slate-400">Legal</h4>
+              <ul className="space-y-2 text-slate-600 text-xs font-medium flex gap-3">
+                <li><span className="cursor-pointer hover:text-indigo-600 transition-colors">Privacy</span></li>
+                <li><span className="cursor-pointer hover:text-indigo-600 transition-colors">Terms</span></li>
+                <li><span className="cursor-pointer hover:text-indigo-600 transition-colors">License</span></li>
               </ul>
             </div>
+
           </div>
-          <div className="w-full px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mt-8 pt-8 border-t border-slate-100 text-xs text-slate-400 text-center">
-            &copy; 2026 OptiFlow Systems. All rights reserved.
+          <div className="w-full px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mt-8 pt-6 border-t border-slate-100 text-[10px] text-slate-400 text-center font-medium">
+            &copy; 2026 OptiFlow Systems &bull; Disclaimer: This platform is a hackathon prototype. Do not use for actual life-safety environments without certification.
           </div>
         </footer>
 

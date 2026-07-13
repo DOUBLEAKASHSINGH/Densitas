@@ -15,11 +15,11 @@ import { MonitorPlay, Shield } from 'lucide-react';
  */
 const DispatchPanel = memo(function DispatchPanel({ activeSignage, dispatchRoster }) {
   return (
-    <div className="flex-none flex gap-4 h-32">
-      <div className="flex-1 bg-white border border-slate-200 rounded-xl shadow-sm p-3 flex flex-col min-w-0">
+    <div className="flex-none flex flex-col sm:flex-row gap-4 h-full">
+      <div className="flex-1 bg-white border border-slate-200 rounded-xl shadow-sm p-3 flex flex-col min-w-0 min-h-[140px]">
         <div className="flex items-center space-x-2 mb-2 text-slate-500">
           <MonitorPlay size={12} />
-          <h3 className="text-[10px] font-bold tracking-wider">SIGNAGE</h3>
+          <h3 className="text-[10px] font-bold tracking-wider uppercase">Digital Information Boards</h3>
         </div>
         <div className="flex-1 border-4 border-slate-900 bg-black rounded p-2 flex items-center justify-center overflow-hidden relative">
           <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, #ffffff 1px, transparent 1px)', backgroundSize: '4px 4px' }}></div>

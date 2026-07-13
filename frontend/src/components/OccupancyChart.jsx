@@ -6,7 +6,7 @@ const OccupancyChart = memo(function OccupancyChart({ chartData }) {
     <div className="h-full w-full flex flex-col">
       <h2 className="text-slate-500 font-semibold text-xs mb-4 tracking-wider flex items-center uppercase">
         <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse mr-2"></span>
-        Live Occupancy vs XGBoost Prediction
+        Live Occupancy vs Prediction Performance
       </h2>
       <div className="flex-1 min-h-0">
         <ResponsiveContainer width="100%" height="100%">
@@ -23,7 +23,7 @@ const OccupancyChart = memo(function OccupancyChart({ chartData }) {
             <Line 
               type="monotone" 
               dataKey="current" 
-              name="Current Capacity %" 
+              name="Current Venue Occupancy" 
               stroke="#4f46e5" 
               strokeWidth={2} 
               dot={false}
@@ -34,7 +34,7 @@ const OccupancyChart = memo(function OccupancyChart({ chartData }) {
             <Line 
               type="monotone" 
               dataKey="predicted" 
-              name="Predicted Capacity % (5m)" 
+              name="Expected Occupancy (Next 5 Minutes)" 
               stroke="#f59e0b" 
               strokeWidth={2}
               strokeDasharray="5 5" 
