@@ -184,5 +184,54 @@ export const VENUE_CONFIG = {
     routes: [
       { id: 'North Evacuation', path: [[17.4375, 78.3440], [17.4380, 78.3440], [17.4385, 78.3440], [17.4395, 78.3440]] }
     ]
+  },
+  "pharma-expo": {
+    id: "jaipur-jecc",
+    name: "Jaipur Exhibition & Convention Centre",
+    city: "Jaipur",
+    centerLat: 26.7865,
+    centerLng: 75.8340,
+    defaultZoom: 16,
+    polygon: [
+      [26.7880, 75.8330], [26.7880, 75.8360], [26.7850, 75.8360], [26.7850, 75.8330]
+    ],
+    zones: {
+      'A': { lat: 26.7875, lng: 75.8340, name: 'Exhibition Hall 1' },
+      'B': { lat: 26.7865, lng: 75.8345, name: 'Exhibition Hall 2' },
+      'C': { lat: 26.7855, lng: 75.8340, name: 'Convention Center' },
+      'D': { lat: 26.7865, lng: 75.8335, name: 'Open Grounds' }
+    },
+    gates: [
+      { id: 'Main Entrance', lat: 26.7870, lng: 75.8330, type: 'primary' },
+      { id: 'Service Gate', lat: 26.7860, lng: 75.8360, type: 'secondary' }
+    ],
+    exits: {
+      'A': { lat: 26.7880, lng: 75.8335 },
+      'B': { lat: 26.7865, lng: 75.8355 },
+      'C': { lat: 26.7850, lng: 75.8345 },
+      'D': { lat: 26.7865, lng: 75.8330 }
+    },
+    emergencyExits: [
+      { id: 'Emergency North', lat: 26.7880, lng: 75.8350 },
+      { id: 'Emergency South', lat: 26.7850, lng: 75.8335 }
+    ],
+    assemblyPoints: [
+      { id: 'Safe Zone Alpha', lat: 26.7890, lng: 75.8340 }
+    ],
+    medicalStations: [
+      { id: 'Medical Wing', lat: 26.7870, lng: 75.8350 }
+    ],
+    securityRooms: [
+      { id: 'Security Hub', lat: 26.7860, lng: 75.8345 }
+    ],
+    reroutes: {
+      'A': [[26.7875, 75.8340], [26.7880, 75.8340], [26.7880, 75.8335]],
+      'B': [[26.7865, 75.8345], [26.7865, 75.8350], [26.7865, 75.8355]],
+      'C': [[26.7855, 75.8340], [26.7850, 75.8340], [26.7850, 75.8345]],
+      'D': [[26.7865, 75.8335], [26.7865, 75.8332], [26.7865, 75.8330]]
+    },
+    routes: [
+      { id: 'Main Evac Route', path: [[26.7875, 75.8340], [26.7880, 75.8340], [26.7890, 75.8340]] }
+    ]
   }
 };
