@@ -8,10 +8,12 @@ import AboutUs from './pages/AboutUs';
 import Documentation from './pages/Documentation';
 
 import GenericContentPage from './pages/GenericContentPage';
+import { AuthProvider } from './components/AuthContext';
 
 function App() {
   return (
-    <BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<AuthWall />} />
@@ -44,6 +46,7 @@ function App() {
         </Route>
       </Routes>
     </BrowserRouter>
+    </AuthProvider>
   );
 }
 

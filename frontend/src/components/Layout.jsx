@@ -3,37 +3,16 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Activity, User, LogOut, Trash2, Settings, Bell, X, MapPin } from 'lucide-react';
 import { auth } from '../firebase';
 import { signOut, deleteUser } from 'firebase/auth';
+import { useAuth } from './AuthContext';
 
 export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(true);
 
-  const [currentUser, setCurrentUser] = useState(() => {
-    try {
-      const stored = localStorage.getItem('optiflow_user_profile');
-      if (stored) return JSON.parse(stored);
-    } catch (e) {}
-    return { name: auth.currentUser?.displayName || 'Admin User', email: auth.currentUser?.email || 'admin@optiflow.com' };
-  });
-
-  const [editName, setEditName] = useState(currentUser.name);
-
-  useEffect(() => {
-    if (isProfileModalOpen) {
-      setEditName(currentUser.name);
-    }
-  }, [isProfileModalOpen, currentUser.name]);
-
-  const handleSaveProfile = () => {
-    const updated = { ...currentUser, name: editName };
-    setCurrentUser(updated);
-    localStorage.setItem('optiflow_user_profile', JSON.stringify(updated));
-    setIsProfileModalOpen(false);
-  };
+  const { currentUser } = useAuth();
 
   // Don't show header/footer on Auth Wall
   const isAuthPage = location.pathname === '/' || location.pathname === '/auth';
@@ -184,10 +163,10 @@ export default function Layout() {
                 {/* User Info Header */}
                 <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
                   <p className="text-sm font-bold text-slate-800">
-                     {currentUser.name}
+                     {currentUser?.name || "Anonymous User"}
                   </p>
-                  <p className="text-xs text-slate-500 font-medium">
-                     {currentUser.email}
+                  <p className="text-xs text-slate-500 font-medium truncate">
+                     {currentUser?.email || "No email available"}
                   </p>
                   <div className="mt-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-indigo-100 text-indigo-700">
                     System Organiser
@@ -196,16 +175,6 @@ export default function Layout() {
 
                 {/* Actions */}
                 <div className="p-2 flex flex-col gap-1">
-                  <button 
-                    onClick={() => {
-                      setIsProfileOpen(false);
-                      setIsProfileModalOpen(true);
-                    }}
-                    className="flex items-center gap-2 w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 rounded-md transition-colors"
-                  >
-                    <Settings size={16} />
-                    Profile Settings
-                  </button>
 
                   <button 
                     onClick={() => {
@@ -299,61 +268,6 @@ export default function Layout() {
             &copy; 2026 OptiFlow Systems. All rights reserved.
           </div>
         </footer>
-
-      {/* Profile Settings Modal Overlay */}
-      {isProfileModalOpen && (
-        <div className="absolute inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-100 flex flex-col">
-            
-            <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50/50">
-              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                <Settings size={20} className="text-indigo-600" />
-                Profile Settings
-              </h3>
-              <button onClick={() => setIsProfileModalOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
-                <X size={20} />
-              </button>
-            </div>
-            
-            <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Full Name</label>
-                <input 
-                  type="text" 
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors" 
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Email Address</label>
-                <input type="email" disabled value={currentUser.email} className="w-full bg-slate-100 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-500 cursor-not-allowed" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-2">Notification Preferences</label>
-                <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
-                  <input type="checkbox" defaultChecked className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500" />
-                  SMS Alerts on Critical Congestion
-                </label>
-                <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer mt-2">
-                  <input type="checkbox" defaultChecked className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500" />
-                  Weekly Analytical Email Reports
-                </label>
-              </div>
-            </div>
-            
-            <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
-              <button onClick={() => setIsProfileModalOpen(false)} className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-200 bg-slate-100 rounded-lg transition-colors">
-                Cancel
-              </button>
-              <button onClick={handleSaveProfile} className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm transition-colors">
-                Save Preferences
-              </button>
-            </div>
-
-          </div>
-        </div>
-      )}
 
     </div>
   );
