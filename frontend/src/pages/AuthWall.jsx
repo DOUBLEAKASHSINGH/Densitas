@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogIn, UserPlus, Activity, AlertCircle } from 'lucide-react';
 import { auth } from '../config/firebase';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut } from 'firebase/auth';
 
 export default function AuthWall() {
   const navigate = useNavigate();
@@ -15,6 +15,7 @@ export default function AuthWall() {
   
   // UI State
   const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleAuth = async (e) => {
@@ -24,17 +25,19 @@ export default function AuthWall() {
 
     try {
       if (isSignUp) {
-        await createUserWithEmailAndPassword(auth, email, password);
-        localStorage.setItem('optiflow_user_profile', JSON.stringify({ name, email }));
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(userCredential.user, { displayName: name });
+        await signOut(auth);
+        
+        setIsSignUp(false);
+        setPassword('');
+        setSuccessMsg('Account created successfully. Please log in.');
+        setIsLoading(false);
+        return;
       } else {
         await signInWithEmailAndPassword(auth, email, password);
-        if (!localStorage.getItem('optiflow_user_profile')) {
-           localStorage.setItem('optiflow_user_profile', JSON.stringify({ name: 'Admin User', email }));
-        }
+        navigate('/select-location');
       }
-      
-      // On success, strictly navigate to the location selector
-      navigate('/select-location');
     } catch (err) {
       console.error(err);
       if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
@@ -66,18 +69,25 @@ export default function AuthWall() {
         
         <div className="flex space-x-2 mb-6 bg-slate-100 p-1 rounded-lg">
           <button
-            onClick={() => { setIsSignUp(false); setError(''); }}
+            onClick={() => { setIsSignUp(false); setError(''); setSuccessMsg(''); }}
             className={`flex-1 py-2 text-sm font-semibold rounded-md transition-all ${!isSignUp ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
           >
             Sign In
           </button>
           <button
-            onClick={() => { setIsSignUp(true); setError(''); }}
+            onClick={() => { setIsSignUp(true); setError(''); setSuccessMsg(''); }}
             className={`flex-1 py-2 text-sm font-semibold rounded-md transition-all ${isSignUp ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
           >
             Sign Up
           </button>
         </div>
+
+        {successMsg && !error && (
+          <div className="mb-6 p-3 bg-green-50 border border-green-200 rounded-lg flex items-start text-green-700 text-sm">
+            <AlertCircle size={16} className="mr-2 shrink-0 mt-0.5" />
+            <span>{successMsg}</span>
+          </div>
+        )}
 
         {error && (
           <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start text-red-700 text-sm">
