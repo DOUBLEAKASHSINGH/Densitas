@@ -12,21 +12,7 @@ export default function Layout() {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(true);
 
-  // Footer Overlay State
-  const [showFooter, setShowFooter] = useState(true);
-  const lastScrollY = useRef(0);
-
-  const handleScroll = (e) => {
-    const currentScrollY = e.target.scrollTop;
-    // Buffer of 10px to avoid micro-scroll jitters
-    if (currentScrollY > lastScrollY.current + 10) {
-      setShowFooter(false);
-      lastScrollY.current = currentScrollY;
-    } else if (currentScrollY < lastScrollY.current - 10) {
-      setShowFooter(true);
-      lastScrollY.current = currentScrollY;
-    }
-  };
+  // Footer state removed for standard document flow
 
   const { currentUser } = useAuth();
   const { clearEventData } = useLocationContext();
@@ -43,7 +29,7 @@ export default function Layout() {
   }
 
   return (
-    <div className="h-screen w-screen flex flex-col bg-slate-50 font-sans text-slate-800 selection:bg-indigo-100">
+    <div className="min-h-screen w-full flex flex-col bg-slate-50 font-sans text-slate-800 selection:bg-indigo-100">
       
       {/* Global Header (Fixed Height) */}
       <header className="flex-none bg-white border-b border-slate-200 z-50 shadow-sm h-16">
@@ -155,14 +141,11 @@ export default function Layout() {
       </header>
 
       {/* Main Content Area */}
-      <main 
-        onScroll={handleScroll}
-        className={`flex-1 overflow-y-auto relative ${location.pathname.includes('/dashboard') ? 'p-0' : 'p-4 sm:p-8 pb-32 sm:pb-32'}`}
-      >
+      <main className={`flex-1 flex flex-col w-full ${location.pathname.includes('/dashboard') ? 'p-0' : 'p-4 sm:p-8'}`}>
         <Outlet />
       </main>
 
-        <footer className={`fixed bottom-0 left-0 w-full z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/50 py-8 transition-transform duration-300 ease-in-out ${showFooter ? 'translate-y-0' : 'translate-y-[100%]'}`}>
+      <footer className="w-full mt-auto bg-white border-t border-slate-200/50 py-8">
           <div className="w-full px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-5 gap-8 text-sm">
             
             {/* Column 1: About OptiFlow */}
