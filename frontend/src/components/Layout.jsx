@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Activity, User, LogOut, Trash2, Settings, Bell, X, MapPin } from 'lucide-react';
 import { auth } from '../firebase';
@@ -12,6 +12,22 @@ export default function Layout() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(true);
+
+  // Footer Overlay State
+  const [showFooter, setShowFooter] = useState(true);
+  const lastScrollY = useRef(0);
+
+  const handleScroll = (e) => {
+    const currentScrollY = e.target.scrollTop;
+    // Buffer of 10px to avoid micro-scroll jitters
+    if (currentScrollY > lastScrollY.current + 10) {
+      setShowFooter(false);
+      lastScrollY.current = currentScrollY;
+    } else if (currentScrollY < lastScrollY.current - 10) {
+      setShowFooter(true);
+      lastScrollY.current = currentScrollY;
+    }
+  };
 
   const { currentUser } = useAuth();
   const { clearEventData } = useLocationContext();
@@ -217,12 +233,15 @@ export default function Layout() {
       </header>
 
       {/* Main Content Area */}
-      <main className={`flex-1 overflow-y-auto relative ${location.pathname.includes('/dashboard') ? 'p-0' : 'p-4 sm:p-8'}`}>
+      <main 
+        onScroll={handleScroll}
+        className={`flex-1 overflow-y-auto relative ${location.pathname.includes('/dashboard') ? 'p-0' : 'p-4 sm:p-8 pb-32 sm:pb-32'}`}
+      >
         <Outlet />
       </main>
 
-      {/* Global Footer */}
-      <footer className="flex-none bg-white border-t border-slate-200 py-8">
+      {/* Global Footer Overlay */}
+      <footer className={`fixed bottom-0 left-0 w-full z-40 bg-white/80 backdrop-blur-md border-t border-slate-200/50 py-6 transition-transform duration-300 ease-in-out ${showFooter ? 'translate-y-0' : 'translate-y-[100%]'}`}>
           <div className="w-full px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 text-sm">
             {/* Column 1 */}
             <div>
