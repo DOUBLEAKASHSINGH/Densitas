@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Calendar, ArrowRight, AlertTriangle, Building, Globe, TestTube2, RefreshCw, Loader2 } from 'lucide-react';
-import { useLocationContext } from '../components/LocationContext';
+import { useLocationContext } from '../contexts/LocationContext';
 
 const INDIA_LOCATION_MATRIX = {
   "Andhra Pradesh": ["Visakhapatnam", "Vijayawada", "Guntur", "Nellore"],

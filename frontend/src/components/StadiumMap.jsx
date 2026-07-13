@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, memo } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup, Polyline, Tooltip, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -28,7 +28,13 @@ const EXIT_COORDS = {
   'D': [0.0013, 0.0005],
 };
 
-export default function StadiumMap({ zoneStates, dynamicCenter, customZoom = 17 }) {
+/**
+ * @param {Object} props
+ * @param {Object} props.zoneStates
+ * @param {[number, number]} props.dynamicCenter
+ * @param {number} props.customZoom
+ */
+const StadiumMap = memo(function StadiumMap({ zoneStates, dynamicCenter, customZoom = 17 }) {
   
   // Fallback to HITEX if no center provided
   const mapCenter = dynamicCenter || [17.4727, 78.3725];
@@ -126,4 +132,6 @@ export default function StadiumMap({ zoneStates, dynamicCenter, customZoom = 17 
       </MapContainer>
     </div>
   );
-}
+});
+
+export default StadiumMap;

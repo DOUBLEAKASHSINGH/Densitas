@@ -8,9 +8,9 @@ import AboutUs from './pages/AboutUs';
 import Documentation from './pages/Documentation';
 
 import GenericContentPage from './pages/GenericContentPage';
-import { AuthProvider } from './components/AuthContext';
-import { LocationProvider } from './components/LocationContext';
-import { TelemetryProvider } from './components/TelemetryContext';
+import { AuthProvider } from './contexts/AuthContext';
+import { LocationProvider } from './contexts/LocationContext';
+import { TelemetryProvider } from './contexts/TelemetryContext';
 
 function App() {
   return (

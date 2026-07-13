@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogIn, UserPlus, Activity, AlertCircle } from 'lucide-react';
-import { auth } from '../firebase';
+import { auth } from '../config/firebase';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 
 export default function AuthWall() {

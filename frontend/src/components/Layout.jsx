@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Activity, User, LogOut, Trash2, Settings, Bell, X, MapPin } from 'lucide-react';
-import { auth } from '../firebase';
+import { auth } from '../config/firebase';
 import { signOut, deleteUser } from 'firebase/auth';
-import { useAuth } from './AuthContext';
-import { useLocationContext } from './LocationContext';
+import { useAuth } from '../contexts/AuthContext';
+import { useLocationContext } from '../contexts/LocationContext';
 
 export default function Layout() {
   const navigate = useNavigate();
