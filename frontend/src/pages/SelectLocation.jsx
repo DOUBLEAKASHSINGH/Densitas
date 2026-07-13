@@ -109,7 +109,12 @@ export default function SelectLocation() {
               type: i === 0 ? "primary" : "secondary"
             })),
             zones: exactConfig ? exactConfig.zones : null,
-            exits: exactConfig ? exactConfig.exits : null
+            exits: exactConfig ? exactConfig.exits : null,
+            assemblyPoints: exactConfig ? exactConfig.assemblyPoints : null,
+            medicalStations: exactConfig ? exactConfig.medicalStations : null,
+            securityRooms: exactConfig ? exactConfig.securityRooms : null,
+            emergencyExits: exactConfig ? exactConfig.emergencyExits : null,
+            routes: exactConfig ? exactConfig.routes : null
           };
         });
         
