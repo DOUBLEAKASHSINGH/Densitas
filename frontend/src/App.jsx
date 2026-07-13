@@ -6,6 +6,7 @@ import SelectLocation from './pages/SelectLocation';
 import Dashboard from './pages/Dashboard';
 import AboutUs from './pages/AboutUs';
 import Documentation from './pages/Documentation';
+import Profile from './pages/Profile';
 
 import GenericContentPage from './pages/GenericContentPage';
 import { AuthProvider } from './contexts/AuthContext';
@@ -24,6 +25,7 @@ function App() {
           <Route path="auth" element={<Navigate to="/" replace />} />
           <Route path="select-location" element={<SelectLocation />} />
           <Route path="dashboard" element={<Dashboard />} />
+          <Route path="profile" element={<Profile />} />
           <Route path="about" element={<AboutUs />} />
           <Route path="docs" element={<Documentation />} />
           
