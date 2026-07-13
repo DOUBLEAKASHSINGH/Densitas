@@ -114,7 +114,9 @@ export default function SelectLocation() {
             medicalStations: exactConfig ? exactConfig.medicalStations : null,
             securityRooms: exactConfig ? exactConfig.securityRooms : null,
             emergencyExits: exactConfig ? exactConfig.emergencyExits : null,
-            routes: exactConfig ? exactConfig.routes : null
+            routes: exactConfig ? exactConfig.routes : null,
+            polygon: exactConfig ? exactConfig.polygon : null,
+            reroutes: exactConfig ? exactConfig.reroutes : null
           };
         });
         

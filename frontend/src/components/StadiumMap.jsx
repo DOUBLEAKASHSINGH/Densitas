@@ -1,5 +1,5 @@
 import React, { useEffect, memo } from 'react';
-import { MapContainer, TileLayer, CircleMarker, Popup, Polyline, Tooltip, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, CircleMarker, Popup, Polyline, Tooltip, useMap, Polygon } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useLocationContext } from '../contexts/LocationContext';
@@ -112,6 +112,11 @@ const StadiumMap = memo(function StadiumMap({ zoneStates }) {
           <Popup><PopupContent name={`${eventData.venue} Center`} type="Core Command" /></Popup>
         </CircleMarker>
 
+        {/* Venue Polygon Boundary */}
+        {eventData.polygon && (
+          <Polygon positions={eventData.polygon} pathOptions={{ color: '#3b82f6', fillColor: '#3b82f6', fillOpacity: 0.05, weight: 2, dashArray: "4 4" }} />
+        )}
+
         {/* Entry Gates (Green) */}
         {eventData.gates && eventData.gates.map((gate, i) => {
           if (!gate.lat || !gate.lng) return null;
@@ -170,7 +175,10 @@ const StadiumMap = memo(function StadiumMap({ zoneStates }) {
 
               {/* Rerouting Visualization */}
               {isCongested && (
-                <Polyline positions={[zoneCoord, exitCoord]} pathOptions={{ color: '#ef4444', weight: 4, dashArray: "5 5", className: 'animate-pulse' }}>
+                <Polyline 
+                  positions={eventData.reroutes && eventData.reroutes[zoneId] ? eventData.reroutes[zoneId] : [zoneCoord, exitCoord]} 
+                  pathOptions={{ color: '#ef4444', weight: 4, dashArray: "5 5", className: 'animate-pulse' }}
+                >
                   <Tooltip permanent direction="center" className="bg-red-50 text-red-600 border border-red-200 font-semibold text-[10px]">
                     Rerouting to Exit {zoneId}
                   </Tooltip>

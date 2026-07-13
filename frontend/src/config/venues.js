@@ -10,6 +10,9 @@ export const VENUE_CONFIG = {
     centerLat: 17.4708,
     centerLng: 78.3753,
     defaultZoom: 17,
+    polygon: [
+      [17.4725, 78.3735], [17.4725, 78.3765], [17.4685, 78.3765], [17.4685, 78.3735]
+    ],
     zones: {
       'A': { lat: 17.4718, lng: 78.3750, name: 'Hall 1' },
       'B': { lat: 17.4713, lng: 78.3745, name: 'Hall 2' },
@@ -40,6 +43,12 @@ export const VENUE_CONFIG = {
     securityRooms: [
       { id: 'Command Center', lat: 17.4712, lng: 78.3749 }
     ],
+    reroutes: {
+      'A': [[17.4718, 78.3750], [17.4718, 78.3753], [17.4720, 78.3753]],
+      'B': [[17.4713, 78.3745], [17.4713, 78.3748], [17.4715, 78.3748]],
+      'C': [[17.4708, 78.3740], [17.4708, 78.3743], [17.4710, 78.3743]],
+      'D': [[17.4695, 78.3760], [17.4692, 78.3765], [17.4690, 78.3765]]
+    },
     routes: [
       { id: 'Evac Route A', path: [[17.4718, 78.3750], [17.4720, 78.3753], [17.4725, 78.3750]] },
       { id: 'Evac Route B', path: [[17.4695, 78.3760], [17.4690, 78.3765], [17.4685, 78.3760]] }
@@ -125,6 +134,55 @@ export const VENUE_CONFIG = {
     ],
     routes: [
       { id: 'Main Evac Route', path: [[28.6170, 77.2435], [28.6175, 77.2430], [28.6180, 77.2425]] }
+    ]
+  },
+  "hyderabad-open-arena": {
+    id: "hyd-open-arena",
+    name: "Hyderabad Open Arena (Gachibowli)",
+    city: "Hyderabad",
+    centerLat: 17.4370,
+    centerLng: 78.3440,
+    defaultZoom: 17,
+    polygon: [
+      [17.4390, 78.3440], [17.4370, 78.3465], [17.4350, 78.3440], [17.4370, 78.3415]
+    ],
+    zones: {
+      'A': { lat: 17.4375, lng: 78.3440, name: 'North Stand' },
+      'B': { lat: 17.4365, lng: 78.3440, name: 'South Stand' },
+      'C': { lat: 17.4370, lng: 78.3445, name: 'East Stand' },
+      'D': { lat: 17.4370, lng: 78.3435, name: 'West Stand' }
+    },
+    gates: [
+      { id: 'Gate 1 (Main VIP)', lat: 17.4385, lng: 78.3440, type: 'primary' },
+      { id: 'Gate 2 (General)', lat: 17.4355, lng: 78.3440, type: 'secondary' }
+    ],
+    exits: {
+      'A': { lat: 17.4382, lng: 78.3435 },
+      'B': { lat: 17.4358, lng: 78.3445 },
+      'C': { lat: 17.4370, lng: 78.3455 },
+      'D': { lat: 17.4370, lng: 78.3425 }
+    },
+    emergencyExits: [
+      { id: 'Emergency N-W', lat: 17.4380, lng: 78.3430 },
+      { id: 'Emergency S-E', lat: 17.4360, lng: 78.3450 }
+    ],
+    assemblyPoints: [
+      { id: 'Assembly Ground Alpha', lat: 17.4395, lng: 78.3440 }
+    ],
+    medicalStations: [
+      { id: 'Med-Bay 1', lat: 17.4380, lng: 78.3445 }
+    ],
+    securityRooms: [
+      { id: 'Command Center', lat: 17.4375, lng: 78.3445 }
+    ],
+    reroutes: {
+      'A': [[17.4375, 78.3440], [17.4380, 78.3438], [17.4382, 78.3435]],
+      'B': [[17.4365, 78.3440], [17.4360, 78.3442], [17.4358, 78.3445]],
+      'C': [[17.4370, 78.3445], [17.4370, 78.3450], [17.4370, 78.3455]],
+      'D': [[17.4370, 78.3435], [17.4370, 78.3430], [17.4370, 78.3425]]
+    },
+    routes: [
+      { id: 'North Evacuation', path: [[17.4375, 78.3440], [17.4380, 78.3440], [17.4385, 78.3440], [17.4395, 78.3440]] }
     ]
   }
 };
