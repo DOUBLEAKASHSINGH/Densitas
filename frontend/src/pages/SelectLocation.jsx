@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Calendar, ArrowRight, AlertTriangle, Building, Globe, TestTube2, RefreshCw, Loader2 } from 'lucide-react';
 import { useLocationContext } from '../contexts/LocationContext';
+import { VENUE_CONFIG } from '../config/venues';
 
 const INDIA_LOCATION_MATRIX = {
   "Andhra Pradesh": ["Visakhapatnam", "Vijayawada", "Guntur", "Nellore"],
@@ -86,17 +87,31 @@ export default function SelectLocation() {
         const data = await response.json();
         
         // Transform incoming BookMyShow payload into Dashboard format
-        const fetchedEvents = (data.events || []).map(evt => ({
-          id: evt.name.replace(/\s+/g, '-').toLowerCase(),
-          name: `${evt.name} - ${evt.venue}`,
-          date: "Live Deployment",
-          centerLat: evt.latitude,
-          centerLng: evt.longitude,
-          gates: evt.gates.map((g, i) => ({
-            id: g,
-            type: i === 0 ? "primary" : "secondary"
-          }))
-        }));
+        const fetchedEvents = (data.events || []).map(evt => {
+          // Normalize venue name for matching (e.g. "HITEX Exhibition Centre" -> "hitex-exhibition-centre")
+          const normalizedVenueName = evt.venue.toLowerCase().replace(/\s+/g, '-');
+          const exactConfig = VENUE_CONFIG[normalizedVenueName];
+
+          return {
+            id: evt.name.replace(/\s+/g, '-').toLowerCase(),
+            name: `${evt.name} - ${evt.venue}`,
+            venue: evt.venue,
+            date: "Live Deployment",
+            
+            // Prefer exact GPS coordinates if available, fallback to backend payload
+            centerLat: exactConfig ? exactConfig.centerLat : evt.latitude,
+            centerLng: exactConfig ? exactConfig.centerLng : evt.longitude,
+            zoom: exactConfig ? exactConfig.defaultZoom : 17,
+            
+            // If exact configuration is mapped, inject gates, zones, and exits
+            gates: exactConfig ? exactConfig.gates : evt.gates.map((g, i) => ({
+              id: g,
+              type: i === 0 ? "primary" : "secondary"
+            })),
+            zones: exactConfig ? exactConfig.zones : null,
+            exits: exactConfig ? exactConfig.exits : null
+          };
+        });
         
         setLiveEventsData(fetchedEvents);
         if (fetchedEvents.length > 0) {
