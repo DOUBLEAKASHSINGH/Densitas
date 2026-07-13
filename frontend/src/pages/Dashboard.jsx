@@ -113,7 +113,7 @@ export default function Dashboard() {
 
           setChartData(prevData => {
             const newIncomingPacket = { time: timeStr, current: targetCap, predicted: predictedCap, zone: targetZone };
-            return [...prevData, newIncomingPacket].slice(-20);
+            return [...prevData, newIncomingPacket].slice(-50);
           });
 
           setLogs(prev => {
@@ -194,42 +194,44 @@ export default function Dashboard() {
         ]);
       }
 
+      // Instant state updates for the chart, logs, and zone capacities
+      setActiveSignage(newSignage);
+      setZoneStates(prev => ({
+        ...prev,
+        [targetZone]: {
+          current_capacity_pct: targetCap,
+          predicted_capacity_pct_5m: predictedCap,
+          meta_area: areaName
+        }
+      }));
+
+      setChartData(prev => {
+        const newData = [...prev, { time: timeStr, current: targetCap, predicted: predictedCap, zone: targetZone }];
+        return newData.slice(-50);
+      });
+
+      setLogs(prev => {
+        const newLogs = [...prev, { timestamp: now, zone_id: targetZone, action: action, cap: Math.round(targetCap) }];
+        return newLogs.slice(-50);
+      });
+
+      // Accelerated visual pipeline steps to fit within 1 second tick
       setActiveAgentIndex(-1);
       setPipelineMessages(['', '', '', '']);
 
-      setTimeout(() => { setActiveAgentIndex(0); setPipelineMessages([`Ingested ${targetZone}: ${Math.round(targetCap)}%`, '', '', '']); }, 100);
-      setTimeout(() => { setActiveAgentIndex(1); setPipelineMessages([`Ingested ${targetZone}: ${Math.round(targetCap)}%`, `Forecasting ${targetZone}: ${Math.round(predictedCap)}%`, '', '']); }, 500);
+      setTimeout(() => { setActiveAgentIndex(0); setPipelineMessages([`Ingested ${targetZone}: ${Math.round(targetCap)}%`, '', '', '']); }, 50);
+      setTimeout(() => { setActiveAgentIndex(1); setPipelineMessages([`Ingested ${targetZone}: ${Math.round(targetCap)}%`, `Forecasting ${targetZone}: ${Math.round(predictedCap)}%`, '', '']); }, 250);
       setTimeout(() => {
         setActiveAgentIndex(2);
         const decisionText = targetCap > criticalThreshold ? 'EVAC ROUTE' : (targetCap >= warningThreshold ? 'PRE-WARN' : 'NOMINAL');
         setPipelineMessages([`Ingested...`, `Forecasting...`, `Threshold: ${decisionText}`, '']);
-      }, 900);
+      }, 500);
       setTimeout(() => {
         setActiveAgentIndex(3);
         setPipelineMessages([`Ingested...`, `Forecasting...`, `Threshold pass`, `Publishing...`]);
-        setActiveSignage(newSignage);
+      }, 750);
 
-        setZoneStates(prev => ({
-          ...prev,
-          [targetZone]: {
-            current_capacity_pct: targetCap,
-            predicted_capacity_pct_5m: predictedCap,
-            meta_area: areaName
-          }
-        }));
-
-        setChartData(prev => {
-          const newData = [...prev, { time: timeStr, current: targetCap, predicted: predictedCap, zone: targetZone }];
-          return newData.slice(-20);
-        });
-
-        setLogs(prev => {
-          const newLogs = [...prev, { timestamp: now, zone_id: targetZone, action: action, cap: Math.round(targetCap) }];
-          return newLogs.slice(-20);
-        });
-      }, 1300);
-
-    }, 3500); // Run every 3.5 seconds
+    }, 1000); // Run every 1.0 seconds
 
     return () => clearInterval(fallbackInterval);
   }, [wsStatus, eventData, criticalThreshold, warningThreshold]);

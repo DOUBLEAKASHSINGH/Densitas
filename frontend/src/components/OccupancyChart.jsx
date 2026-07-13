@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-export default function OccupancyChart({ chartData }) {
+const OccupancyChart = memo(function OccupancyChart({ chartData }) {
   return (
     <div className="h-full w-full flex flex-col">
       <h2 className="text-slate-500 font-semibold text-xs mb-4 tracking-wider flex items-center uppercase">
@@ -28,7 +28,8 @@ export default function OccupancyChart({ chartData }) {
               strokeWidth={2} 
               dot={false}
               activeDot={{ r: 4, fill: '#4f46e5', stroke: '#fff' }}
-              isAnimationActive={false}
+              isAnimationActive={true}
+              animationDuration={300}
             />
             <Line 
               type="monotone" 
@@ -38,11 +39,14 @@ export default function OccupancyChart({ chartData }) {
               strokeWidth={2}
               strokeDasharray="5 5" 
               dot={false}
-              isAnimationActive={false}
+              isAnimationActive={true}
+              animationDuration={300}
             />
           </LineChart>
         </ResponsiveContainer>
       </div>
     </div>
   );
-}
+});
+
+export default OccupancyChart;
