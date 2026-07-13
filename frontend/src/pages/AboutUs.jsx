@@ -75,21 +75,6 @@ export default function AboutUs() {
         </div>
       </div>
 
-      {/* Section 3: Our Architecture Flowchart */}
-      <div className="py-24 px-6 lg:px-8 bg-white">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Our Architecture</h2>
-            <p className="mt-4 text-lg text-slate-600 max-w-2xl mx-auto">
-              A deeply integrated, low-latency pipeline built for extreme resilience.
-            </p>
-          </div>
-
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 w-full max-w-4xl mx-auto">
-            <img src="/optiflow-architecture.png" alt="OptiFlow Architecture" className="w-full h-auto object-contain" />
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
